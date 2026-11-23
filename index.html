@@ -3,317 +3,358 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CSC Chhattisgarh - District PMS Target vs Achievement</title>
+  <title>CSC Chhattisgarh - District PMS Portal (Target vs Achievement)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f1f5f9; }
-    .tabular-nums { font-variant-numeric: tabular-nums; }
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .table-container { max-height: 68vh; overflow: auto; }
+    thead th { position: sticky; top: 0; z-index: 10; }
+    thead tr:nth-child(2) th { top: 38px; }
   </style>
 </head>
-<body class="text-slate-800">
+<body class="text-gray-800">
 
-  <!-- Top Header -->
-  <header class="bg-blue-900 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
       <div>
-        <h1 class="text-xl md:text-2xl font-bold tracking-tight">CSC Chhattisgarh — District PMS Portal (FY 2026-27)</h1>
-        <p class="text-blue-200 text-xs md:text-sm">Business Activity Wise Target v/s Achievement (Monthly, Quarterly, Half-Yearly & Annual)</p>
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight">CSC Chhattisgarh — District PMS Dashboard</h1>
+        <p class="text-xs md:text-sm text-blue-200">Business Activity Wise Target vs Achievement (Monthly, Quarterly, Half-Yearly & Annually)</p>
       </div>
-      <div class="flex items-center gap-3">
-        <span id="lastUpdated" class="text-xs bg-blue-800 px-3 py-1.5 rounded-full text-blue-100">Loading data...</span>
-        <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded shadow">
-          Export CSV
+      <div class="flex items-center gap-2">
+        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm font-semibold px-4 py-2 rounded-lg shadow transition">
+          Download CSV Report
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- Filter Controls -->
-    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-5 gap-4">
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">1. Select District</label>
-        <select id="districtSelect" onchange="renderDashboard()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-          <option value="">Loading Districts...</option>
-        </select>
-      </div>
+    <!-- Filters Card -->
+    <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- District Filter -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">1. Select District</label>
+          <select id="districtFilter" onchange="onFilterChange()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="ALL">ALL DISTRICTS (STATE TOTAL)</option>
+          </select>
+        </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Period Type</label>
-        <select id="periodTypeSelect" onchange="updateSubPeriodOptions()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-          <option value="QUARTERLY">Quarterly (Q1 - Q4)</option>
-          <option value="MONTHLY">Monthly (Apr - Mar)</option>
-          <option value="HALF_YEARLY">Half-Yearly (H1 / H2)</option>
-          <option value="ANNUALLY">Annually (FY 2026-27)</option>
-        </select>
-      </div>
+        <!-- Vertical Filter -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">2. Select Vertical</label>
+          <select id="verticalFilter" onchange="renderDashboard()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="ALL">ALL VERTICALS</option>
+          </select>
+        </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Select Period</label>
-        <select id="subPeriodSelect" onchange="renderDashboard()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-          <option value="Q1">Q1 (Apr - Jun)</option>
-          <option value="Q2">Q2 (Jul - Sep)</option>
-          <option value="Q3">Q3 (Oct - Dec)</option>
-          <option value="Q4">Q4 (Jan - Mar)</option>
-        </select>
-      </div>
+        <!-- Period Type Filter -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">3. Period Category</label>
+          <select id="periodCategory" onchange="updatePeriodOptions()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="MONTHLY">Monthly</option>
+            <option value="QUARTERLY">Quarterly</option>
+            <option value="HALFYEARLY">Half-Yearly</option>
+            <option value="ANNUALLY" selected>Annually (Yearly)</option>
+          </select>
+        </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4. Vertical Filter</label>
-        <select id="verticalSelect" onchange="renderDashboard()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-          <option value="ALL">All Verticals</option>
-        </select>
-      </div>
+        <!-- Specific Period Filter -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">4. Select Period</label>
+          <select id="periodSelect" onchange="renderDashboard()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium bg-blue-50 border-blue-300 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="YEARLY">YEARLY</option>
+          </select>
+        </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">5. Metric View</label>
-        <select id="metricSelect" onchange="renderDashboard()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold text-blue-900 bg-blue-50 focus:ring-2 focus:ring-blue-500">
-          <option value="txn">Transactions (TXN)</option>
-          <option value="amt">Amount (₹ AMT)</option>
-          <option value="rev">Revenue (₹ REV.)</option>
-        </select>
       </div>
-    </section>
+    </div>
 
     <!-- Summary KPI Cards -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <!-- TXN Card -->
       <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600">
-        <p class="text-xs font-semibold text-slate-500 uppercase">Total Target</p>
-        <p id="kpiTarget" class="text-2xl font-bold text-slate-800 mt-1 tabular-nums">0</p>
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-gray-500 uppercase">Transactions (TXN)</span>
+          <span id="kpiTxnPct" class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
+        </div>
+        <div class="mt-2 flex justify-between items-baseline">
+          <div>
+            <p class="text-xs text-gray-400">Achievement</p>
+            <p id="kpiTxnAch" class="text-lg font-bold text-gray-900">0</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Target</p>
+            <p id="kpiTxnTgt" class="text-sm font-semibold text-gray-600">0</p>
+          </div>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-600">
-        <p class="text-xs font-semibold text-slate-500 uppercase">Total Achievement</p>
-        <p id="kpiAch" class="text-2xl font-bold text-emerald-700 mt-1 tabular-nums">0</p>
-      </div>
+
+      <!-- AMT Card -->
       <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-600">
-        <p class="text-xs font-semibold text-slate-500 uppercase">Overall Achievement %</p>
-        <p id="kpiPct" class="text-2xl font-bold text-indigo-700 mt-1 tabular-nums">0%</p>
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-gray-500 uppercase">Amount (AMT in ₹)</span>
+          <span id="kpiAmtPct" class="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
+        </div>
+        <div class="mt-2 flex justify-between items-baseline">
+          <div>
+            <p class="text-xs text-gray-400">Achievement</p>
+            <p id="kpiAmtAch" class="text-lg font-bold text-gray-900">0</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Target</p>
+            <p id="kpiAmtTgt" class="text-sm font-semibold text-gray-600">0</p>
+          </div>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500">
-        <p class="text-xs font-semibold text-slate-500 uppercase">Activities Tracked</p>
-        <p id="kpiCount" class="text-2xl font-bold text-slate-800 mt-1 tabular-nums">0</p>
-      </div>
-    </section>
 
-    <!-- Search & Data Table -->
-    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 class="font-bold text-slate-800 text-base">Business Activity Wise Breakdown</h2>
-        <input type="text" id="searchInput" onkeyup="renderDashboard()" placeholder="Search Business Activity..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-full sm:w-64 focus:ring-2 focus:ring-blue-500" />
+      <!-- REV Card -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-600">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-gray-500 uppercase">Revenue (REV in ₹)</span>
+          <span id="kpiRevPct" class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
+        </div>
+        <div class="mt-2 flex justify-between items-baseline">
+          <div>
+            <p class="text-xs text-gray-400">Achievement</p>
+            <p id="kpiRevAch" class="text-lg font-bold text-gray-900">0</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Target</p>
+            <p id="kpiRevTgt" class="text-sm font-semibold text-gray-600">0</p>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+    <!-- Search Box -->
+    <div class="mb-3 flex justify-between items-center">
+      <input type="text" id="searchInput" onkeyup="renderDashboard()" placeholder="Search Business Activity..." class="w-full md:w-80 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <span id="rowCount" class="text-xs font-medium text-gray-500 ml-3">Loading data...</span>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div id="loader" class="p-10 text-center text-gray-500 font-medium">
+        Fetching live data from Google Sheet... Please wait.
+      </div>
+      <div class="table-container hidden" id="tableWrapper">
+        <table class="w-full text-xs text-left border-collapse" id="pmsTable">
           <thead>
-            <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
-              <th class="py-3 px-4">Sr.</th>
-              <th class="py-3 px-4">Vertical Name</th>
-              <th class="py-3 px-4">Business Activity</th>
-              <th class="py-3 px-4 text-right">Target</th>
-              <th class="py-3 px-4 text-right">Achievement</th>
-              <th class="py-3 px-4 text-right">Shortfall / Surplus</th>
-              <th class="py-3 px-4 text-center">Achievement %</th>
+            <tr class="bg-gray-800 text-white">
+              <th rowspan="2" class="px-3 py-2 border border-gray-700">S.No</th>
+              <th rowspan="2" class="px-3 py-2 border border-gray-700">Vertical</th>
+              <th rowspan="2" class="px-3 py-2 border border-gray-700 min-w-[220px]">Business Activity</th>
+              <th colspan="3" class="px-3 py-2 border border-gray-700 text-center bg-blue-900">TARGET</th>
+              <th colspan="3" class="px-3 py-2 border border-gray-700 text-center bg-emerald-900">ACHIEVEMENT</th>
+              <th colspan="3" class="px-3 py-2 border border-gray-700 text-center bg-amber-900">% ACHIEVED</th>
+            </tr>
+            <tr class="bg-gray-700 text-gray-100">
+              <th class="px-2 py-1.5 border border-gray-600 text-right">TXN</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">AMT</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">REV</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">TXN</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">AMT</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">REV</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">TXN %</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">AMT %</th>
+              <th class="px-2 py-1.5 border border-gray-600 text-right">REV %</th>
             </tr>
           </thead>
-          <tbody id="tableBody" class="divide-y divide-slate-100 text-sm">
-            <tr><td colspan="7" class="py-8 text-center text-slate-400">Fetching live Google Sheet data...</td></tr>
-          </tbody>
+          <tbody id="tableBody" class="divide-y divide-gray-200"></tbody>
         </table>
       </div>
-    </section>
+    </div>
 
   </main>
 
   <script>
-    // APNA GOOGLE APPS SCRIPT WEB APP URL YAHAN PASTE KAREIN
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg2DZmEefG91hl2Yhlrqh2AA1tuaQP0z8nFfBfYNXrkf8hWwibvs6OrGmybSnsO1o8ng/exec";
+    // APNA DEPLOYED WEB APP URL YAHAN PASTE KAREIN
+    const API_URL = "https://script.google.com/macros/s/AKfycbyg2DZmEefG91hl2Yhlrqh2AA1tuaQP0z8nFfBfYNXrkf8hWwibvs6OrGmybSnsO1o8ng/exec";
 
-    let quarterRecords = [];
-    let monthRecords = [];
+    let rawData = [];
     let currentFilteredRows = [];
 
-    const SUB_PERIODS = {
-      QUARTERLY: [
-        { value: "Q1", label: "Q1 (Apr - Jun)" },
-        { value: "Q2", label: "Q2 (Jul - Sep)" },
-        { value: "Q3", label: "Q3 (Oct - Dec)" },
-        { value: "Q4", label: "Q4 (Jan - Mar)" }
-      ],
-      HALF_YEARLY: [
-        { value: "H1", label: "H1 (Apr - Sep)" },
-        { value: "H2", label: "H2 (Oct - Mar)" }
-      ],
-      ANNUALLY: [
-        { value: "ANNUAL", label: "Full Year (FY 2026-27)" }
-      ],
-      MONTHLY: [
-        { value: "APRIL", label: "April" },
-        { value: "MAY", label: "May" },
-        { value: "JUNE", label: "June" },
-        { value: "JULY", label: "July" },
-        { value: "AUGUST", label: "August" },
-        { value: "SEPTEMBER", label: "September" },
-        { value: "OCTOBER", label: "October" },
-        { value: "NOVEMBER", label: "November" },
-        { value: "DECEMBER", label: "December" },
-        { value: "JANUARY", label: "January" },
-        { value: "FEBRUARY", label: "February" },
-        { value: "MARCH", label: "March" }
-      ]
+    const periodOptionsMap = {
+      "MONTHLY": ["APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY", "MARCH"],
+      "QUARTERLY": ["QUARTER 1", "QUARTER 2", "QUARTER 3", "QUARTER 4"],
+      "HALFYEARLY": ["HALF YEARLY 1 (APR-SEP)", "HALF YEARLY 2 (OCT-MAR)"],
+      "ANNUALLY": ["YEARLY"]
     };
 
-    async function init() {
+    window.onload = async () => {
+      updatePeriodOptions();
       try {
-        const res = await fetch(SCRIPT_URL);
+        const res = await fetch(API_URL);
         const json = await res.json();
         if (json.status === "success") {
-          quarterRecords = json.quarterRecords || [];
-          monthRecords = json.monthRecords || [];
-          document.getElementById("lastUpdated").textContent = "Updated: " + json.updatedAt;
-          populateFilters();
+          rawData = json.data;
+          populateDropdowns();
+          document.getElementById("loader").classList.add("hidden");
+          document.getElementById("tableWrapper").classList.remove("hidden");
           renderDashboard();
+        } else {
+          document.getElementById("loader").innerText = "Error: " + json.message;
         }
-      } catch (err) {
-        document.getElementById("tableBody").innerHTML =
-          `<tr><td colspan="7" class="py-6 text-center text-red-600 font-medium">Data load nahi ho paya. Kripya SCRIPT_URL aur deployment access check karein.</td></tr>`;
+      } catch (e) {
+        document.getElementById("loader").innerText = "Failed to load data. Check Web App URL & Permissions.";
       }
+    };
+
+    function populateDropdowns() {
+      const districts = [...new Set(rawData.map(r => r.district))].sort();
+      const distSelect = document.getElementById("districtFilter");
+      districts.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        distSelect.appendChild(opt);
+      });
+
+      const verticals = [...new Set(rawData.map(r => r.vertical))].sort();
+      const vertSelect = document.getElementById("verticalFilter");
+      verticals.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        vertSelect.appendChild(opt);
+      });
     }
 
-    function populateFilters() {
-      const source = quarterRecords.length ? quarterRecords : monthRecords;
-      const districts = [...new Set(source.map(r => r.district))].sort();
-      const verticals = [...new Set(source.map(r => r.vertical))].sort();
-
-      const distSel = document.getElementById("districtSelect");
-      distSel.innerHTML = districts.map(d => `<option value="${d}">${d}</option>`).join("");
-
-      const vertSel = document.getElementById("verticalSelect");
-      vertSel.innerHTML = `<option value="ALL">All Verticals</option>` +
-        verticals.map(v => `<option value="${v}">${v}</option>`).join("");
-    }
-
-    function updateSubPeriodOptions() {
-      const type = document.getElementById("periodTypeSelect").value;
-      const subSel = document.getElementById("subPeriodSelect");
-      subSel.innerHTML = SUB_PERIODS[type].map(p => `<option value="${p.value}">${p.label}</option>`).join("");
+    function updatePeriodOptions() {
+      const cat = document.getElementById("periodCategory").value;
+      const periodSelect = document.getElementById("periodSelect");
+      periodSelect.innerHTML = "";
+      periodOptionsMap[cat].forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        periodSelect.appendChild(opt);
+      });
       renderDashboard();
     }
 
-    function formatIndianNumber(num, isCurrency) {
-      const formatted = Math.round(num).toLocaleString("en-IN");
-      return isCurrency ? "₹ " + formatted : formatted;
+    function onFilterChange() {
+      renderDashboard();
+    }
+
+    function formatNum(n) {
+      return Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    }
+
+    function calcPct(ach, tgt) {
+      if (!tgt || tgt === 0) return ach > 0 ? "100%" : "0%";
+      return ((ach / tgt) * 100).toFixed(1) + "%";
+    }
+
+    function getBadgeColor(ach, tgt) {
+      if (!tgt || tgt === 0) return "text-gray-500";
+      const pct = (ach / tgt) * 100;
+      if (pct >= 100) return "text-emerald-700 font-bold bg-emerald-50";
+      if (pct >= 75) return "text-amber-700 font-semibold bg-amber-50";
+      return "text-red-600 font-semibold bg-red-50";
     }
 
     function renderDashboard() {
-      const district = document.getElementById("districtSelect").value;
-      const periodType = document.getElementById("periodTypeSelect").value;
-      const subPeriod = document.getElementById("subPeriodSelect").value;
-      const vertical = document.getElementById("verticalSelect").value;
-      const metric = document.getElementById("metricSelect").value; // txn | amt | rev
-      const search = document.getElementById("searchInput").value.toLowerCase().trim();
-      const isCurrency = (metric === "amt" || metric === "rev");
+      const selectedDist = document.getElementById("districtFilter").value;
+      const selectedVert = document.getElementById("verticalFilter").value;
+      const selectedPeriod = document.getElementById("periodSelect").value;
+      const searchQuery = document.getElementById("searchInput").value.toLowerCase();
 
-      const dataset = (periodType === "MONTHLY") ? monthRecords : quarterRecords;
+      // Filter raw data
+      let filtered = rawData.filter(r => {
+        const matchDist = (selectedDist === "ALL") || (r.district === selectedDist);
+        const matchVert = (selectedVert === "ALL") || (r.vertical === selectedVert);
+        const matchSearch = r.activity.toLowerCase().includes(searchQuery) || r.vertical.toLowerCase().includes(searchQuery);
+        return matchDist && matchVert && matchSearch;
+      });
 
-      let totalTarget = 0;
-      let totalAch = 0;
-      currentFilteredRows = [];
-
-      dataset.forEach(item => {
-        if (item.district !== district) return;
-        if (vertical !== "ALL" && item.vertical !== vertical) return;
-        if (search && !item.activity.toLowerCase().includes(search) && !item.vertical.toLowerCase().includes(search)) return;
-
-        let targetVal = 0;
-        let achVal = 0;
-
-        if (periodType === "MONTHLY") {
-          const mData = item.months && item.months[subPeriod];
-          if (mData) {
-            targetVal = mData.target[metric] || 0;
-            achVal = mData.ach[metric] || 0;
-          }
-        } else {
-          const pData = item[subPeriod];
-          if (pData) {
-            targetVal = pData.target[metric] || 0;
-            achVal = pData.ach[metric] || 0;
-          }
+      // Agar "ALL DISTRICTS" select hai toh Business Activity wise sum karein
+      const aggregatedMap = new Map();
+      filtered.forEach(item => {
+        const key = item.vertical + "||" + item.activity;
+        const m = item.metrics[selectedPeriod];
+        if (!aggregatedMap.has(key)) {
+          aggregatedMap.set(key, {
+            vertical: item.vertical,
+            activity: item.activity,
+            t_txn: 0, t_amt: 0, t_rev: 0,
+            a_txn: 0, a_amt: 0, a_rev: 0
+          });
         }
+        const entry = aggregatedMap.get(key);
+        entry.t_txn += m.t_txn; entry.t_amt += m.t_amt; entry.t_rev += m.t_rev;
+        entry.a_txn += m.a_txn; entry.a_amt += m.a_amt; entry.a_rev += m.a_rev;
+      });
 
-        const pct = targetVal > 0 ? ((achVal / targetVal) * 100) : (achVal > 0 ? 100 : 0);
-        const diff = achVal - targetVal;
+      currentFilteredRows = Array.from(aggregatedMap.values());
 
-        totalTarget += targetVal;
-        totalAch += achVal;
+      // KPI Totals
+      let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0;
+      let totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
 
-        currentFilteredRows.push({
-          vertical: item.vertical,
-          activity: item.activity,
-          target: targetVal,
-          ach: achVal,
-          diff: diff,
-          pct: pct
-        });
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      currentFilteredRows.forEach((row, idx) => {
+        totT_Txn += row.t_txn; totT_Amt += row.t_amt; totT_Rev += row.t_rev;
+        totA_Txn += row.a_txn; totA_Amt += row.a_amt; totA_Rev += row.a_rev;
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-blue-50/50 transition";
+        tr.innerHTML = `
+          <td class="px-3 py-2 border border-gray-200 text-gray-500">${idx + 1}</td>
+          <td class="px-3 py-2 border border-gray-200 font-medium text-indigo-800">${row.vertical}</td>
+          <td class="px-3 py-2 border border-gray-200 font-semibold text-gray-900">${row.activity}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right">${formatNum(row.t_txn)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right">${formatNum(row.t_amt)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right">${formatNum(row.t_rev)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right font-semibold text-blue-900">${formatNum(row.a_txn)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right font-semibold text-blue-900">${formatNum(row.a_amt)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right font-semibold text-blue-900">${formatNum(row.a_rev)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right ${getBadgeColor(row.a_txn, row.t_txn)}">${calcPct(row.a_txn, row.t_txn)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right ${getBadgeColor(row.a_amt, row.t_amt)}">${calcPct(row.a_amt, row.t_amt)}</td>
+          <td class="px-2 py-2 border border-gray-200 text-right ${getBadgeColor(row.a_rev, row.t_rev)}">${calcPct(row.a_rev, row.t_rev)}</td>
+        `;
+        tbody.appendChild(tr);
       });
 
       // Update KPI Cards
-      const overallPct = totalTarget > 0 ? ((totalAch / totalTarget) * 100).toFixed(1) : "0.0";
-      document.getElementById("kpiTarget").textContent = formatIndianNumber(totalTarget, isCurrency);
-      document.getElementById("kpiAch").textContent = formatIndianNumber(totalAch, isCurrency);
-      document.getElementById("kpiPct").textContent = overallPct + "%";
-      document.getElementById("kpiCount").textContent = currentFilteredRows.length;
+      document.getElementById("kpiTxnAch").innerText = formatNum(totA_Txn);
+      document.getElementById("kpiTxnTgt").innerText = formatNum(totT_Txn);
+      document.getElementById("kpiTxnPct").innerText = calcPct(totA_Txn, totT_Txn);
 
-      // Render Table
-      const tbody = document.getElementById("tableBody");
-      if (currentFilteredRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Is filter ke liye koi data available nahi hai.</td></tr>`;
-        return;
-      }
+      document.getElementById("kpiAmtAch").innerText = "₹ " + formatNum(totA_Amt);
+      document.getElementById("kpiAmtTgt").innerText = "₹ " + formatNum(totT_Amt);
+      document.getElementById("kpiAmtPct").innerText = calcPct(totA_Amt, totT_Amt);
 
-      tbody.innerHTML = currentFilteredRows.map((row, idx) => {
-        const badgeColor = row.pct >= 100 ? "bg-emerald-100 text-emerald-800" :
-                           row.pct >= 75  ? "bg-amber-100 text-amber-800" :
-                                            "bg-rose-100 text-rose-800";
-        const diffColor = row.diff >= 0 ? "text-emerald-600" : "text-rose-600";
-        const diffSign = row.diff > 0 ? "+" : "";
+      document.getElementById("kpiRevAch").innerText = "₹ " + formatNum(totA_Rev);
+      document.getElementById("kpiRevTgt").innerText = "₹ " + formatNum(totT_Rev);
+      document.getElementById("kpiRevPct").innerText = calcPct(totA_Rev, totT_Rev);
 
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="py-3 px-4 text-slate-500">${idx + 1}</td>
-            <td class="py-3 px-4 font-medium text-slate-700">${row.vertical}</td>
-            <td class="py-3 px-4 font-semibold text-slate-900">${row.activity}</td>
-            <td class="py-3 px-4 text-right tabular-nums">${formatIndianNumber(row.target, isCurrency)}</td>
-            <td class="py-3 px-4 text-right font-semibold tabular-nums text-blue-900">${formatIndianNumber(row.ach, isCurrency)}</td>
-            <td class="py-3 px-4 text-right font-medium tabular-nums ${diffColor}">${diffSign}${formatIndianNumber(row.diff, isCurrency)}</td>
-            <td class="py-3 px-4 text-center">
-              <span class="px-2.5 py-1 rounded-full text-xs font-bold ${badgeColor}">${row.pct.toFixed(1)}%</span>
-            </td>
-          </tr>
-        `;
-      }).join("");
+      document.getElementById("rowCount").innerText = `Showing ${currentFilteredRows.length} activities (${selectedPeriod})`;
     }
 
-    function exportCSV() {
-      if (!currentFilteredRows.length) return;
-      const district = document.getElementById("districtSelect").value;
-      const subPeriod = document.getElementById("subPeriodSelect").value;
-      const metric = document.getElementById("metricSelect").value.toUpperCase();
+    function exportToCSV() {
+      const dist = document.getElementById("districtFilter").value;
+      const period = document.getElementById("periodSelect").value;
+      let csv = `District,Vertical,Business Activity,Period,Target TXN,Target AMT,Target REV,Achievement TXN,Achievement AMT,Achievement REV,TXN %,AMT %,REV %\n`;
 
-      let csv = `District,Period,Metric,Vertical,Business Activity,Target,Achievement,Variance,Achievement %\n`;
       currentFilteredRows.forEach(r => {
-        csv += `"${district}","${subPeriod}","${metric}","${r.vertical}","${r.activity}",${r.target},${r.ach},${r.diff},${r.pct.toFixed(2)}%\n`;
+        csv += `"${dist}","${r.vertical}","${r.activity}","${period}",${r.t_txn},${r.t_amt},${r.t_rev},${r.a_txn},${r.a_amt},${r.a_rev},"${calcPct(r.a_txn, r.t_txn)}","${calcPct(r.a_amt, r.t_amt)}","${calcPct(r.a_rev, r.t_rev)}"\n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `${district}_${subPeriod}_${metric}_PMS_Report.csv`;
+      link.download = `PMS_${dist}_${period}.csv`;
       link.click();
     }
-
-    init();
   </script>
 </body>
 </html>
