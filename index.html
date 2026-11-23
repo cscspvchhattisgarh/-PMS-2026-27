@@ -517,7 +517,7 @@
 
   <!-- MODAL 2: FORMAL ADVISORY / SHOW-CAUSE MEMO GENERATOR -->
   <div id="advisoryModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
       <div class="bg-rose-950 text-white px-5 py-4 flex justify-between items-center">
         <div>
           <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded">Official Communication</span>
@@ -541,11 +541,14 @@
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Editable Official Letter / WhatsApp Advisory Draft</label>
-          <textarea id="advisoryTextArea" rows="13" class="w-full border border-slate-300 rounded-xl p-3.5 text-xs font-medium text-slate-800 leading-relaxed focus:ring-2 focus:ring-rose-600 focus:outline-none"></textarea>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Editable Official Letter / WhatsApp Advisory Draft (Includes Service-Wise Target, Achievement, Shortfall, % & State Rank)</label>
+          <textarea id="advisoryTextArea" rows="16" class="w-full border border-slate-300 rounded-xl p-3.5 text-xs font-mono text-slate-800 leading-relaxed focus:ring-2 focus:ring-rose-600 focus:outline-none"></textarea>
         </div>
 
         <div class="flex justify-end gap-2">
+          <button onclick="printAdvisoryLetter()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+            🖨️ Print Official Letter
+          </button>
           <button onclick="copyAdvisoryText()" id="copyAdvBtn" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
             📋 Copy Official Memo
           </button>
@@ -587,16 +590,14 @@
       "ANNUALLY": ["YEARLY"]
     };
 
-    // Determine Current & Previous Month Pair for MoM Momentum
     function getMomMonthPair(selectedPeriod) {
       const mIdx = monthsList.indexOf(selectedPeriod);
       if (mIdx > 0) return { curr: monthsList[mIdx], prev: monthsList[mIdx - 1] };
       if (mIdx === 0) return { curr: "APRIL", prev: null };
 
-      // For Quarterly / Half-Yearly / Yearly, compare Current Active Month vs Previous Month
       const now = new Date();
-      const calMonth = now.getMonth(); // 0=Jan ... 10=Nov
-      const fyIdx = calMonth >= 3 ? calMonth - 3 : calMonth + 9; // Apr=0 ... Nov=7
+      const calMonth = now.getMonth();
+      const fyIdx = calMonth >= 3 ? calMonth - 3 : calMonth + 9;
       return {
         curr: monthsList[fyIdx],
         prev: fyIdx > 0 ? monthsList[fyIdx - 1] : null
@@ -614,7 +615,6 @@
       return `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${prefix}0%</span>`;
     }
 
-    // Language Switcher (EN / HI)
     function setLang(lang) {
       currentLang = lang;
       const btnEn = document.getElementById("langEN");
@@ -700,7 +700,6 @@
       document.getElementById(id).classList.add("hidden");
     }
 
-    // 3-Page Auto-Adjustable Print Controller
     function prepareThreePagePrint() {
       const targetBodyId = activeTab === "activity" ? "tableBody" : "leaderboardBody";
       const tbody = document.getElementById(targetBodyId);
@@ -1396,7 +1395,32 @@
     }
 
     // =========================================================
-    // FEATURE 1: FORMAL SHOW-CAUSE / ADVISORY MEMO GENERATOR
+    // HELPER: CALCULATE DISTRICT RANK IN A SPECIFIC BUSINESS ACTIVITY
+    // =========================================================
+    function getDistrictRankInActivity(distName, vertical, activity, period) {
+      const allDistMetrics = rawData
+        .filter(r => r.vertical === vertical && r.activity === activity)
+        .map(r => {
+          const m = r.metrics[period];
+          const tt = ceilNum(m.t_txn), at = ceilNum(m.a_txn);
+          return {
+            district: r.district,
+            pct: calcPctNum(at, tt),
+            ach: at
+          };
+        })
+        .sort((a, b) => (b.pct - a.pct) || (b.ach - a.ach));
+
+      const idx = allDistMetrics.findIndex(x => x.district === distName);
+      return {
+        rank: idx >= 0 ? idx + 1 : "-",
+        total: allDistMetrics.length
+      };
+    }
+
+    // =========================================================
+    // FEATURE 1: DETAILED ADVISORY / SHOW-CAUSE MEMO GENERATOR
+    // (WITH ZERO & CRITICAL SERVICES: TARGET, ACH, SHORTFALL, %, RANK)
     // =========================================================
     function openAdvisoryModal(presetDistrict) {
       const currentDist = presetDistrict || document.getElementById("districtFilter").value;
@@ -1417,20 +1441,43 @@
       const remDays = getRemainingDays(selectedPeriod);
       const todayStr = new Date().toLocaleDateString('en-IN');
 
+      // Overall State Rank of this District
+      const overallIdx = latestRankList.findIndex(d => d.district === distName);
+      const overallRankStr = overallIdx >= 0 ? `#${overallIdx + 1} / ${latestRankList.length}` : "N/A";
+
       const distRows = rawData.filter(r => r.district === distName && (selectedVert === "ALL" || r.vertical === selectedVert));
       let tTxn = 0, aTxn = 0, tRev = 0, aRev = 0;
       const zeroSvcs = [];
-      const laggingSvcs = [];
+      const criticalSvcs = [];
 
       distRows.forEach(r => {
         const m = r.metrics[selectedPeriod];
         const tt = ceilNum(m.t_txn), at = ceilNum(m.a_txn);
         const tr = ceilNum(m.t_rev), ar = ceilNum(m.a_rev);
         tTxn += tt; aTxn += at; tRev += tr; aRev += ar;
-        const pct = calcPctNum(at, tt);
-        if ((tt > 0 || tr > 0) && at === 0 && ar === 0) zeroSvcs.push(r.activity);
-        else if (pct < 50 && tt > 0) laggingSvcs.push(`${r.activity} (${pct}%)`);
+
+        const pctTxn = calcPctNum(at, tt);
+        const gapTxn = calcShortfall(tt, at);
+        const gapRev = calcShortfall(tr, ar);
+        const svcRankObj = getDistrictRankInActivity(distName, r.vertical, r.activity, selectedPeriod);
+
+        const itemObj = {
+          vertical: r.vertical,
+          activity: r.activity,
+          tTxn: tt, aTxn: at, gapTxn, pctTxn,
+          tRev: tr, aRev: ar, gapRev,
+          rankStr: `${svcRankObj.rank}/${svcRankObj.total}`
+        };
+
+        if ((tt > 0 || tr > 0) && at === 0 && ar === 0) {
+          zeroSvcs.push(itemObj);
+        } else if (tt > 0 && pctTxn < 50) {
+          criticalSvcs.push(itemObj);
+        }
       });
+
+      // Sort critical services from lowest % to highest %
+      criticalSvcs.sort((a, b) => a.pctTxn - b.pctTxn);
 
       const txnPct = calcPctNum(aTxn, tTxn);
       const revPct = calcPctNum(aRev, tRev);
@@ -1438,32 +1485,52 @@
       const gapRev = calcShortfall(tRev, aRev);
       const dailyTxn = remDays > 0 ? Math.ceil(gapTxn / remDays) : gapTxn;
 
+      const formatSvcLinesHI = (list) => {
+        if (!list.length) return "   • कोई सेवा नहीं\n";
+        return list.map((s, i) =>
+          `   ${i + 1}. ${s.activity} [${s.vertical}] — राज्य रैंक: #${s.rankStr}\n` +
+          `      कुल लक्ष्य (Target): ${formatNum(s.tTxn)} TXN (₹${formatNum(s.tRev)}) | कुल उपलब्धि (Ach): ${formatNum(s.aTxn)} TXN (₹${formatNum(s.aRev)}) | शेष कमी (Shortfall): ${formatNum(s.gapTxn)} TXN (₹${formatNum(s.gapRev)}) | प्रगति: ${s.pctTxn}%`
+        ).join("\n");
+      };
+
+      const formatSvcLinesEN = (list) => {
+        if (!list.length) return "   • None\n";
+        return list.map((s, i) =>
+          `   ${i + 1}. ${s.activity} [${s.vertical}] — District Rank: #${s.rankStr}\n` +
+          `      Total Target: ${formatNum(s.tTxn)} TXN (₹${formatNum(s.tRev)}) | Total Achievement: ${formatNum(s.aTxn)} TXN (₹${formatNum(s.aRev)}) | Total Shortfall: ${formatNum(s.gapTxn)} TXN (₹${formatNum(s.gapRev)}) | % Achievement: ${s.pctTxn}%`
+        ).join("\n");
+      };
+
       let letter = "";
       if (lang === "HI") {
         letter = `कार्यालय: CSC e-Governance Services India Limited (राज्य कार्यालय, रायपुर, छत्तीसगढ़)\n` +
                  `दिनांक: ${todayStr}\n\n` +
                  `प्रति,\nजिला प्रबंधक (District Manager),\nजिला — ${distName} (छत्तीसगढ़)\n\n` +
-                 `विषय: वित्तीय वर्ष 2026-27 (${selectedPeriod}) के अंतर्गत PMS लक्ष्यों की न्यून प्रगति के संबंध में स्पष्टीकरण एवं कार्ययोजना बाबत।\n\n` +
+                 `विषय: वित्तीय वर्ष 2026-27 (${selectedPeriod}) के अंतर्गत PMS लक्ष्यों की न्यून प्रगति (Zero & Critical Services) के संबंध में स्पष्टीकरण एवं कार्ययोजना बाबत।\n\n` +
                  `महोदय,\n` +
-                 `राज्य कार्यालय द्वारा की गई PMS समीक्षा में पाया गया है कि जिला ${distName} (${selectedVert}) की प्रगति निर्धारित लक्ष्यों के अनुरूप नहीं है:\n` +
-                 `• कुल ट्रांजेक्शन (TXN): लक्ष्य ${formatNum(tTxn)} के विरुद्ध उपलब्धि ${formatNum(aTxn)} (${txnPct}%), शेष अंतर (Shortfall): ${formatNum(gapTxn)}\n` +
-                 `• कुल राजस्व (REV): लक्ष्य ₹${formatNum(tRev)} के विरुद्ध उपलब्धि ₹${formatNum(aRev)} (${revPct}%), शेष अंतर: ₹${formatNum(gapRev)}\n` +
-                 `• शून्य उपलब्धि (Zero Achievement) वाली सेवाएं (${zeroSvcs.length}): ${zeroSvcs.slice(0, 6).join(", ") || "कोई नहीं"}\n` +
-                 `• 50% से कम प्रगति वाली प्रमुख सेवाएं: ${laggingSvcs.slice(0, 6).join(", ") || "कोई नहीं"}\n\n` +
-                 `अतः आपको निर्देशित किया जाता है कि शेष ${remDays} दिवसों में प्रतिदिन न्यूनतम ${formatNum(dailyTxn)} ट्रांजेक्शन सुनिश्चित करते हुए सभी शून्य एवं पिछड़ी सेवाओं को तत्काल सक्रिय करें तथा 03 दिवस के भीतर ब्लॉक-वार कार्ययोजना राज्य कार्यालय को प्रस्तुत करें।\n\n` +
+                 `राज्य कार्यालय द्वारा की गई PMS समीक्षा में पाया गया है कि जिला ${distName} (${selectedVert}) की समग्र राज्य रैंक ${overallRankStr} है एवं प्रगति निर्धारित लक्ष्यों से काफी पीछे है:\n` +
+                 `• समग्र ट्रांजेक्शन (TXN): लक्ष्य ${formatNum(tTxn)} | उपलब्धि ${formatNum(aTxn)} | शेष कमी: ${formatNum(gapTxn)} | प्रगति: ${txnPct}%\n` +
+                 `• समग्र राजस्व (REV): लक्ष्य ₹${formatNum(tRev)} | उपलब्धि ₹${formatNum(aRev)} | शेष कमी: ₹${formatNum(gapRev)} | प्रगति: ${revPct}%\n\n` +
+                 `1. शून्य उपलब्धि वाली सेवाएं (ZERO ACHIEVEMENT SERVICES — कुल ${zeroSvcs.length}):\n` +
+                 `${formatSvcLinesHI(zeroSvcs)}\n\n` +
+                 `2. अत्यंत न्यून प्रगति वाली सेवाएं (CRITICAL SERVICES <50% — कुल ${criticalSvcs.length}):\n` +
+                 `${formatSvcLinesHI(criticalSvcs)}\n\n` +
+                 `अतः आपको निर्देशित किया जाता है कि शेष ${remDays} दिवसों में प्रतिदिन न्यूनतम ${formatNum(dailyTxn)} ट्रांजेक्शन सुनिश्चित करते हुए उपरोक्त सभी शून्य एवं क्रिटिकल सेवाओं को तत्काल सक्रिय करें तथा 03 दिवस के भीतर ब्लॉक-वार कार्ययोजना राज्य कार्यालय को प्रस्तुत करें।\n\n` +
                  `भवदीय,\nराज्य टीम (PMS मॉनिटरिंग सेल)\nCSC SPV छत्तीसगढ़`;
       } else {
         letter = `OFFICE OF CSC e-GOVERNANCE SERVICES INDIA LIMITED (STATE OFFICE, RAIPUR, CHHATTISGARH)\n` +
                  `Date: ${todayStr}\n\n` +
                  `To,\nThe District Manager,\nDistrict — ${distName}, Chhattisgarh\n\n` +
-                 `Subject: Advisory Memo on Sub-Optimal PMS Target Achievement for ${selectedPeriod} (FY 2026-27).\n\n` +
+                 `Subject: Advisory Memo on Zero-Achievement & Critical Lagging Business Activities for ${selectedPeriod} (FY 2026-27).\n\n` +
                  `Dear Sir/Madam,\n` +
-                 `During the State-level PMS review for ${selectedPeriod} (${selectedVert}), the performance of District ${distName} has been observed below the expected benchmark:\n` +
-                 `• Transactions (TXN): Achieved ${formatNum(aTxn)} against Target of ${formatNum(tTxn)} (${txnPct}%) | Shortfall: ${formatNum(gapTxn)}\n` +
-                 `• Revenue (REV): Achieved ₹${formatNum(aRev)} against Target of ₹${formatNum(tRev)} (${revPct}%) | Shortfall: ₹${formatNum(gapRev)}\n` +
-                 `• Zero-Achievement Services (${zeroSvcs.length}): ${zeroSvcs.slice(0, 6).join(", ") || "None"}\n` +
-                 `• Critical Lagging Services (<50%): ${laggingSvcs.slice(0, 6).join(", ") || "None"}\n\n` +
-                 `You are hereby advised to achieve a minimum daily run-rate of ${formatNum(dailyTxn)} TXN over the remaining ${remDays} days, activate all zero-achievement services immediately, and submit a block-wise recovery plan to the State Office within 3 days.\n\n` +
+                 `During the State-level PMS review for ${selectedPeriod} (${selectedVert}), District ${distName} currently stands at Overall State Rank ${overallRankStr}, with performance substantially below the assigned benchmark:\n` +
+                 `• Overall Transactions (TXN): Total Target ${formatNum(tTxn)} | Total Achievement ${formatNum(aTxn)} | Total Shortfall: ${formatNum(gapTxn)} | % Achievement: ${txnPct}%\n` +
+                 `• Overall Revenue (REV): Total Target ₹${formatNum(tRev)} | Total Achievement ₹${formatNum(aRev)} | Total Shortfall: ₹${formatNum(gapRev)} | % Achievement: ${revPct}%\n\n` +
+                 `1. ZERO-ACHIEVEMENT BUSINESS ACTIVITIES (Total: ${zeroSvcs.length}):\n` +
+                 `${formatSvcLinesEN(zeroSvcs)}\n\n` +
+                 `2. CRITICAL LAGGING BUSINESS ACTIVITIES (<50% Achievement — Total: ${criticalSvcs.length}):\n` +
+                 `${formatSvcLinesEN(criticalSvcs)}\n\n` +
+                 `You are hereby directed to maintain a minimum daily run-rate of ${formatNum(dailyTxn)} TXN over the remaining ${remDays} days, activate all Zero-Achievement and Critical services immediately, and submit a block-wise recovery plan to the State Office within 3 days.\n\n` +
                  `Regards,\nState Operations & PMS Monitoring Cell\nCSC SPV Chhattisgarh`;
       }
 
@@ -1477,6 +1544,27 @@
         btn.innerText = "✅ Official Memo Copied!";
         setTimeout(() => btn.innerText = "📋 Copy Official Memo", 2200);
       });
+    }
+
+    function printAdvisoryLetter() {
+      const txt = document.getElementById("advisoryTextArea").value;
+      const distName = document.getElementById("advDistrictSelect").value;
+      const win = window.open("", "_blank", "width=850,height=900");
+      win.document.write(`
+        <html>
+        <head>
+          <title>Advisory Letter — ${distName}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px 40px; line-height: 1.55; font-size: 13px; color: #111; }
+            pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+          </style>
+        </head>
+        <body><pre>${txt.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre></body>
+        </html>
+      `);
+      win.document.close();
+      win.focus();
+      setTimeout(() => win.print(), 300);
     }
 
     // =========================================================
