@@ -146,6 +146,9 @@
           <button onclick="forceRefreshData()" id="refreshBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow transition">
             🔄 Sync
           </button>
+          <button onclick="openVCMode()" class="bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow transition">
+            🎥 VC Review Mode
+          </button>
           <button onclick="copyDistrictLink()" id="linkBtn" class="bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow transition">
             🔗 District Link
           </button>
@@ -557,6 +560,44 @@
     </div>
   </div>
 
+  <!-- MODAL 3: VC REVIEW PRESENTATION MODE (FULL-SCREEN SPOTLIGHT SLIDE VIEW) -->
+  <div id="vcReviewModal" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col justify-between p-6 md:p-10 no-print">
+    <!-- VC Top Bar -->
+    <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-800 pb-4">
+      <div class="flex items-center gap-3">
+        <span class="bg-purple-600 text-white text-xs font-extrabold px-3 py-1 rounded-lg uppercase tracking-wider">🎥 VC Review Spotlight</span>
+        <div>
+          <h2 id="vcHeaderTitle" class="text-lg md:text-2xl font-extrabold text-amber-400">ALL DISTRICTS | YEARLY</h2>
+          <p id="vcSlideSub" class="text-xs text-slate-400">CSC SPV Chhattisgarh — State Performance Review (FY 2026-27)</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="vcSlideIndicator" class="text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300">Slide 1 / 5</span>
+        <button onclick="prevVCSlide()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition">◀ Prev</button>
+        <button onclick="nextVCSlide()" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-xl text-sm font-bold transition">Next ▶</button>
+        <button onclick="closeVCMode()" class="bg-rose-600 hover:bg-rose-500 px-3.5 py-2 rounded-xl text-sm font-bold ml-2 transition">✕ Exit</button>
+      </div>
+    </div>
+
+    <!-- VC Center Slide Content -->
+    <div id="vcSlideContent" class="flex-1 flex flex-col justify-center max-w-6xl w-full mx-auto py-6 overflow-auto num-font">
+      <!-- Dynamic Slide Content Rendered Here -->
+    </div>
+
+    <!-- VC Bottom Navigation Pills -->
+    <div class="flex flex-wrap justify-between items-center gap-3 border-t border-slate-800 pt-4 text-xs text-slate-400">
+      <div class="flex flex-wrap gap-2">
+        <button onclick="goToVCSlide(0)" id="vcDot0" class="vc-dot px-3 py-1.5 rounded-lg font-bold bg-purple-600 text-white">1. Executive Summary</button>
+        <button onclick="goToVCSlide(1)" id="vcDot1" class="vc-dot px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300">2. Top 5 Districts</button>
+        <button onclick="goToVCSlide(2)" id="vcDot2" class="vc-dot px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300">3. Low Performing Districts</button>
+        <button onclick="goToVCSlide(3)" id="vcDot3" class="vc-dot px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300">4. Zero Achievement Alert</button>
+        <button onclick="goToVCSlide(4)" id="vcDot4" class="vc-dot px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300">5. Critical Services (&lt;50%)</button>
+      </div>
+      <div class="hidden md:block">Keyboard Shortcuts: <strong>← / →</strong> to Navigate | <strong>ESC</strong> to Exit</div>
+    </div>
+  </div>
+
   <script>
     // APNA DEPLOYED WEB APP URL YAHAN PASTE KAREIN
     const API_URL = "https://script.google.com/macros/s/AKfycbyg2DZmEefG91hl2Yhlrqh2AA1tuaQP0z8nFfBfYNXrkf8hWwibvs6OrGmybSnsO1o8ng/exec";
@@ -564,11 +605,13 @@
 
     let rawData = [];
     let currentFilteredRows = [];
+    let allAggregatedRows = [];
     let latestRankList = [];
     let activeServiceDrillData = { vertical: "", activity: "", rows: [] };
     let activeStatusFilter = "ALL";
     let activeTab = "activity";
     let currentLang = "EN";
+    let currentVCSlide = 0;
     let verticalChartInstance = null;
     let trendChartInstance = null;
     let syncTimer = null;
@@ -700,6 +743,249 @@
       document.getElementById(id).classList.add("hidden");
     }
 
+    // =========================================================
+    // FEATURE 4: VC REVIEW PRESENTATION MODE (SPOTLIGHT SLIDES)
+    // =========================================================
+    function openVCMode() {
+      currentVCSlide = 0;
+      document.getElementById("vcReviewModal").classList.remove("hidden");
+      renderVCSlide();
+    }
+
+    function closeVCMode() {
+      document.getElementById("vcReviewModal").classList.add("hidden");
+    }
+
+    function nextVCSlide() {
+      currentVCSlide = (currentVCSlide + 1) % 5;
+      renderVCSlide();
+    }
+
+    function prevVCSlide() {
+      currentVCSlide = (currentVCSlide - 1 + 5) % 5;
+      renderVCSlide();
+    }
+
+    function goToVCSlide(idx) {
+      currentVCSlide = idx;
+      renderVCSlide();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const vcModal = document.getElementById("vcReviewModal");
+      if (vcModal && !vcModal.classList.contains("hidden")) {
+        if (e.key === "ArrowRight") nextVCSlide();
+        else if (e.key === "ArrowLeft") prevVCSlide();
+        else if (e.key === "Escape") closeVCMode();
+      }
+    });
+
+    function renderVCSlide() {
+      const dist = document.getElementById("districtFilter").value;
+      const vert = document.getElementById("verticalFilter").value;
+      const period = document.getElementById("periodSelect").value;
+      const remDays = getRemainingDays(period);
+
+      document.getElementById("vcHeaderTitle").innerText = `${dist} | ${vert} | ${period}`;
+      document.getElementById("vcSlideIndicator").innerText = `Slide ${currentVCSlide + 1} / 5`;
+
+      document.querySelectorAll(".vc-dot").forEach((b, i) => {
+        b.className = i === currentVCSlide
+          ? "vc-dot px-3 py-1.5 rounded-lg font-bold bg-purple-600 text-white"
+          : "vc-dot px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+      });
+
+      const container = document.getElementById("vcSlideContent");
+
+      if (currentVCSlide === 0) {
+        // SLIDE 1: EXECUTIVE KPI & PACING SUMMARY
+        container.innerHTML = `
+          <div class="mb-6 flex justify-between items-end">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-widest text-purple-400">Slide 01 • Executive Overview</span>
+              <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1">Overall Target vs Achievement & Daily Run-Rate</h3>
+            </div>
+            <span class="bg-blue-900/80 border border-blue-500/40 text-blue-200 px-3.5 py-1.5 rounded-xl text-sm font-bold">
+              ⏳ ${remDays} Days Remaining
+            </span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border border-slate-700 border-t-4 border-t-blue-500 p-6 rounded-2xl">
+              <div class="flex justify-between items-center mb-4">
+                <span class="text-sm font-bold text-slate-400 uppercase">Transactions (TXN)</span>
+                <span class="text-xl font-extrabold text-blue-400">${document.getElementById("kpiTxnPct").innerText}</span>
+              </div>
+              <div class="space-y-2.5 text-base">
+                <div class="flex justify-between"><span class="text-slate-400">Target:</span><span class="font-bold">${document.getElementById("kpiTxnTgt").innerText}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Achieved:</span><span class="font-extrabold text-blue-300 text-xl">${document.getElementById("kpiTxnAch").innerText}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Shortfall:</span><span class="font-bold text-rose-400">${document.getElementById("kpiTxnGap").innerText}</span></div>
+                <div class="pt-2 border-t border-slate-800 flex justify-between text-amber-400 font-bold">
+                  <span>Req. Daily Pace:</span><span>${document.getElementById("kpiTxnRate").innerText}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-700 border-t-4 border-t-indigo-500 p-6 rounded-2xl">
+              <div class="flex justify-between items-center mb-4">
+                <span class="text-sm font-bold text-slate-400 uppercase">Amount (AMT)</span>
+                <span class="text-xl font-extrabold text-indigo-400">${document.getElementById("kpiAmtPct").innerText}</span>
+              </div>
+              <div class="space-y-2.5 text-base">
+                <div class="flex justify-between"><span class="text-slate-400">Target:</span><span class="font-bold">${document.getElementById("kpiAmtTgt").innerText}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Achieved:</span><span class="font-extrabold text-indigo-300 text-xl">${document.getElementById("kpiAmtAch").innerText}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Shortfall:</span><span class="font-bold text-rose-400">${document.getElementById("kpiAmtGap").innerText}</span></div>
+                <div class="pt-2 border-t border-slate-800 flex justify-between text-amber-400 font-bold">
+                  <span>Req. Daily Pace:</span><span>${document.getElementById("kpiAmtRate").innerText}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-700 border-t-4 border-t-emerald-500 p-6 rounded-2xl">
+              <div class="flex justify-between items-center mb-4">
+                <span class="text-sm font-bold text-slate-400 uppercase">Revenue (REV)</span>
+                <span class="text-xl font-extrabold text-emerald-400">${document.getElementById("kpiRevPct").innerText}</span>
+              </div>
+              <div class="space-y-2.5 text-base">
+                <div class="flex justify-between"><span class="text-slate-400">Target:</span><span class="font-bold">${document.getElementById("kpiRevTgt").innerText}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Achieved:</span><span class="font-extrabold text-emerald-300 text-xl">${document.getElementById("kpiRevAch").innerText}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Shortfall:</span><span class="font-bold text-rose-400">${document.getElementById("kpiRevGap").innerText}</span></div>
+                <div class="pt-2 border-t border-slate-800 flex justify-between text-amber-400 font-bold">
+                  <span>Req. Daily Pace:</span><span>${document.getElementById("kpiRevRate").innerText}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (currentVCSlide === 1) {
+        // SLIDE 2: TOP 5 PERFORMING DISTRICTS
+        const top5 = latestRankList.slice(0, 5);
+        container.innerHTML = `
+          <div class="mb-5">
+            <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Slide 02 • State Leaders</span>
+            <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1">🏆 Top 5 Performing Districts (${period})</h3>
+          </div>
+          <div class="space-y-3">
+            ${top5.map((d, i) => `
+              <div class="bg-slate-900 border border-emerald-500/30 p-4 rounded-2xl flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                  <span class="text-2xl font-extrabold text-amber-400 w-10">#${i + 1}</span>
+                  <div>
+                    <div class="text-xl font-extrabold text-white">${d.district}</div>
+                    <div class="text-xs text-slate-400">TXN: ${formatNum(d.a_txn)} / ${formatNum(d.t_txn)} | REV: ₹${formatNum(d.a_rev)} / ₹${formatNum(d.t_rev)}</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-6">
+                  <div class="text-right">
+                    <div class="text-[11px] text-slate-400 uppercase">TXN %</div>
+                    <div class="text-2xl font-extrabold text-emerald-400">${d.txnPct}%</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-[11px] text-slate-400 uppercase">REV %</div>
+                    <div class="text-2xl font-extrabold text-blue-400">${d.revPct}%</div>
+                  </div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } else if (currentVCSlide === 2) {
+        // SLIDE 3: BOTTOM 5 LOW PERFORMING DISTRICTS
+        const bot5 = latestRankList.slice(-5).reverse();
+        container.innerHTML = `
+          <div class="mb-5">
+            <span class="text-xs font-bold uppercase tracking-widest text-rose-400">Slide 03 • Immediate Intervention Required</span>
+            <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1">🚨 Bottom 5 Low-Performing Districts (${period})</h3>
+          </div>
+          <div class="space-y-3">
+            ${bot5.map(d => {
+              const rank = latestRankList.indexOf(d) + 1;
+              return `
+                <div class="bg-slate-900 border border-rose-500/40 p-4 rounded-2xl flex flex-wrap justify-between items-center gap-4">
+                  <div class="flex items-center gap-4">
+                    <span class="text-2xl font-extrabold text-rose-400 w-12">#${rank}</span>
+                    <div>
+                      <div class="text-xl font-extrabold text-white">${d.district}</div>
+                      <div class="text-xs text-slate-400">TXN: ${formatNum(d.a_txn)} / ${formatNum(d.t_txn)} (Shortfall: ${formatNum(calcShortfall(d.t_txn, d.a_txn))})</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-6">
+                    <div class="text-right">
+                      <div class="text-[11px] text-slate-400 uppercase">TXN %</div>
+                      <div class="text-2xl font-extrabold text-rose-400">${d.txnPct}%</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-[11px] text-slate-400 uppercase">REV %</div>
+                      <div class="text-2xl font-extrabold text-amber-400">${d.revPct}%</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      } else if (currentVCSlide === 3) {
+        // SLIDE 4: ZERO ACHIEVEMENT SERVICES
+        const zeroList = allAggregatedRows.filter(r => (r.t_txn > 0 || r.t_rev > 0) && r.a_txn === 0 && r.a_rev === 0);
+        container.innerHTML = `
+          <div class="mb-5">
+            <span class="text-xs font-bold uppercase tracking-widest text-red-400">Slide 04 • Inactive Services Alert</span>
+            <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1">⚠️ Zero-Achievement Business Activities (${zeroList.length})</h3>
+          </div>
+          ${zeroList.length === 0
+            ? `<div class="bg-emerald-950/50 border border-emerald-500/40 p-8 rounded-2xl text-center text-xl font-bold text-emerald-300">🎉 Excellent! Zero-Achievement Services = 0</div>`
+            : `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[55vh] overflow-auto pr-1">
+                ${zeroList.map((s, i) => `
+                  <div class="bg-slate-900 border border-red-500/40 p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                      <span class="text-[10px] font-bold uppercase bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded">${s.vertical}</span>
+                      <div class="text-base font-bold text-white mt-1">${i + 1}. ${s.activity}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-xs text-slate-400">Assigned Target</div>
+                      <div class="text-sm font-extrabold text-amber-400">${formatNum(s.t_txn)} TXN | ₹${formatNum(s.t_rev)}</div>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>`
+          }
+        `;
+      } else {
+        // SLIDE 5: CRITICAL LAGGING SERVICES (<50%)
+        const critList = allAggregatedRows
+          .filter(r => r.t_txn > 0 && calcPctNum(r.a_txn, r.t_txn) < 50)
+          .sort((a, b) => calcPctNum(a.a_txn, a.t_txn) - calcPctNum(b.a_txn, b.t_txn))
+          .slice(0, 8);
+
+        container.innerHTML = `
+          <div class="mb-5">
+            <span class="text-xs font-bold uppercase tracking-widest text-amber-400">Slide 05 • Priority Focus Services</span>
+            <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1">📉 Top Critical Lagging Business Activities (&lt;50%)</h3>
+          </div>
+          <div class="space-y-2.5">
+            ${critList.map((s, i) => {
+              const pct = calcPctNum(s.a_txn, s.t_txn);
+              const gap = calcShortfall(s.t_txn, s.a_txn);
+              return `
+                <div class="bg-slate-900 border border-slate-700 p-3.5 rounded-xl flex flex-wrap justify-between items-center gap-3">
+                  <div>
+                    <span class="text-xs font-bold text-indigo-400">[${s.vertical}]</span>
+                    <span class="text-base font-extrabold text-white ml-2">${i + 1}. ${s.activity}</span>
+                  </div>
+                  <div class="flex items-center gap-5 text-sm">
+                    <div><span class="text-slate-400">Tgt:</span> <strong>${formatNum(s.t_txn)}</strong></div>
+                    <div><span class="text-slate-400">Ach:</span> <strong class="text-blue-300">${formatNum(s.a_txn)}</strong></div>
+                    <div><span class="text-slate-400">Shortfall:</span> <strong class="text-rose-400">${formatNum(gap)}</strong></div>
+                    <span class="bg-rose-600 text-white font-extrabold px-2.5 py-1 rounded-lg">${pct}%</span>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+    }
+
+    // 3-Page Auto-Adjustable Print Controller
     function prepareThreePagePrint() {
       const targetBodyId = activeTab === "activity" ? "tableBody" : "leaderboardBody";
       const tbody = document.getElementById(targetBodyId);
@@ -1006,6 +1292,7 @@
       });
 
       let allRows = Array.from(aggregatedMap.values());
+      allAggregatedRows = allRows;
 
       const zeroCount = allRows.filter(r => (r.t_txn > 0 || r.t_rev > 0) && r.a_txn === 0 && r.a_rev === 0).length;
       document.getElementById("zeroCountBadge").innerText = zeroCount;
@@ -1258,9 +1545,6 @@
       switchTab("activity");
     }
 
-    // =========================================================
-    // FEATURE 2: INDIVIDUAL DM PERSONALIZED WHATSAPP CARD
-    // =========================================================
     function copySingleDMMsg(distName, rank, totalDists, btnEl) {
       const selectedVert = document.getElementById("verticalFilter").value;
       const selectedPeriod = document.getElementById("periodSelect").value;
@@ -1324,9 +1608,6 @@
       });
     }
 
-    // =========================================================
-    // FEATURE 3: SERVICE-WISE 33-DISTRICT DRILL-DOWN MODAL
-    // =========================================================
     function openServiceDrillDown(vertical, activity) {
       const selectedPeriod = document.getElementById("periodSelect").value;
       document.getElementById("svcModalVertical").innerText = vertical;
@@ -1394,9 +1675,6 @@
       });
     }
 
-    // =========================================================
-    // HELPER: CALCULATE DISTRICT RANK IN A SPECIFIC BUSINESS ACTIVITY
-    // =========================================================
     function getDistrictRankInActivity(distName, vertical, activity, period) {
       const allDistMetrics = rawData
         .filter(r => r.vertical === vertical && r.activity === activity)
@@ -1418,10 +1696,6 @@
       };
     }
 
-    // =========================================================
-    // FEATURE 1: DETAILED ADVISORY / SHOW-CAUSE MEMO GENERATOR
-    // (WITH ZERO & CRITICAL SERVICES: TARGET, ACH, SHORTFALL, %, RANK)
-    // =========================================================
     function openAdvisoryModal(presetDistrict) {
       const currentDist = presetDistrict || document.getElementById("districtFilter").value;
       const sel = document.getElementById("advDistrictSelect");
@@ -1441,7 +1715,6 @@
       const remDays = getRemainingDays(selectedPeriod);
       const todayStr = new Date().toLocaleDateString('en-IN');
 
-      // Overall State Rank of this District
       const overallIdx = latestRankList.findIndex(d => d.district === distName);
       const overallRankStr = overallIdx >= 0 ? `#${overallIdx + 1} / ${latestRankList.length}` : "N/A";
 
@@ -1476,7 +1749,6 @@
         }
       });
 
-      // Sort critical services from lowest % to highest %
       criticalSvcs.sort((a, b) => a.pctTxn - b.pctTxn);
 
       const txnPct = calcPctNum(aTxn, tTxn);
@@ -1567,9 +1839,6 @@
       setTimeout(() => win.print(), 300);
     }
 
-    // =========================================================
-    // DISTRICT-SPECIFIC WHATSAPP SUMMARY (BILINGUAL EN / HI)
-    // =========================================================
     function copyWhatsAppSummary() {
       const dist = document.getElementById("districtFilter").value;
       const vert = document.getElementById("verticalFilter").value;
@@ -1617,9 +1886,6 @@
       });
     }
 
-    // =========================================================
-    // TOP, MEDIAN & LOW PERFORMING DISTRICTS WHATSAPP TEMPLATE
-    // =========================================================
     function copyStateRankingWA() {
       if (!latestRankList || latestRankList.length === 0) return;
 
