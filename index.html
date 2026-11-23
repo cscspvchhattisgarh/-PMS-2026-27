@@ -243,18 +243,21 @@
       renderDashboard();
     }
 
+    // Bina decimal ke round-up formatting
     function formatNum(n) {
-      return Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+      const rounded = Math.ceil(Number(n || 0));
+      return rounded.toLocaleString('en-IN', { maximumFractionDigits: 0 });
     }
 
+    // Percentage bhi bina decimal ke round-up
     function calcPct(ach, tgt) {
       if (!tgt || tgt === 0) return ach > 0 ? "100%" : "0%";
-      return ((ach / tgt) * 100).toFixed(1) + "%";
+      return Math.ceil((ach / tgt) * 100) + "%";
     }
 
     function getBadgeColor(ach, tgt) {
       if (!tgt || tgt === 0) return "text-gray-500";
-      const pct = (ach / tgt) * 100;
+      const pct = Math.ceil((ach / tgt) * 100);
       if (pct >= 100) return "text-emerald-700 font-bold bg-emerald-50";
       if (pct >= 75) return "text-amber-700 font-semibold bg-amber-50";
       return "text-red-600 font-semibold bg-red-50";
@@ -266,7 +269,6 @@
       const selectedPeriod = document.getElementById("periodSelect").value;
       const searchQuery = document.getElementById("searchInput").value.toLowerCase();
 
-      // Filter raw data
       let filtered = rawData.filter(r => {
         const matchDist = (selectedDist === "ALL") || (r.district === selectedDist);
         const matchVert = (selectedVert === "ALL") || (r.vertical === selectedVert);
@@ -274,7 +276,6 @@
         return matchDist && matchVert && matchSearch;
       });
 
-      // Agar "ALL DISTRICTS" select hai toh Business Activity wise sum karein
       const aggregatedMap = new Map();
       filtered.forEach(item => {
         const key = item.vertical + "||" + item.activity;
@@ -288,13 +289,16 @@
           });
         }
         const entry = aggregatedMap.get(key);
-        entry.t_txn += m.t_txn; entry.t_amt += m.t_amt; entry.t_rev += m.t_rev;
-        entry.a_txn += m.a_txn; entry.a_amt += m.a_amt; entry.a_rev += m.a_rev;
+        entry.t_txn += Math.ceil(m.t_txn);
+        entry.t_amt += Math.ceil(m.t_amt);
+        entry.t_rev += Math.ceil(m.t_rev);
+        entry.a_txn += Math.ceil(m.a_txn);
+        entry.a_amt += Math.ceil(m.a_amt);
+        entry.a_rev += Math.ceil(m.a_rev);
       });
 
       currentFilteredRows = Array.from(aggregatedMap.values());
 
-      // KPI Totals
       let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0;
       let totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
 
@@ -324,7 +328,6 @@
         tbody.appendChild(tr);
       });
 
-      // Update KPI Cards
       document.getElementById("kpiTxnAch").innerText = formatNum(totA_Txn);
       document.getElementById("kpiTxnTgt").innerText = formatNum(totT_Txn);
       document.getElementById("kpiTxnPct").innerText = calcPct(totA_Txn, totT_Txn);
@@ -346,7 +349,7 @@
       let csv = `District,Vertical,Business Activity,Period,Target TXN,Target AMT,Target REV,Achievement TXN,Achievement AMT,Achievement REV,TXN %,AMT %,REV %\n`;
 
       currentFilteredRows.forEach(r => {
-        csv += `"${dist}","${r.vertical}","${r.activity}","${period}",${r.t_txn},${r.t_amt},${r.t_rev},${r.a_txn},${r.a_amt},${r.a_rev},"${calcPct(r.a_txn, r.t_txn)}","${calcPct(r.a_amt, r.t_amt)}","${calcPct(r.a_rev, r.t_rev)}"\n`;
+        csv += `"${dist}","${r.vertical}","${r.activity}","${period}",${Math.ceil(r.t_txn)},${Math.ceil(r.t_amt)},${Math.ceil(r.t_rev)},${Math.ceil(r.a_txn)},${Math.ceil(r.a_amt)},${Math.ceil(r.a_rev)},"${calcPct(r.a_txn, r.t_txn)}","${calcPct(r.a_amt, r.t_amt)}","${calcPct(r.a_rev, r.t_rev)}"\n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
