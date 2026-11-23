@@ -33,220 +33,322 @@
       animation: stripeMove 0.8s linear infinite;
     }
 
+    /* 3 FULL-PAGE AUTO-ADJUSTABLE PRINT / PDF LAYOUT (A4 LANDSCAPE) */
     @media print {
-      @page { size: A4 landscape; margin: 10mm; }
-      body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      @page { size: A4 landscape; margin: 8mm 10mm; }
+      html, body {
+        width: 277mm;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
       .no-print { display: none !important; }
+      #printPage1 {
+        page-break-after: always !important;
+        break-after: page !important;
+        height: 188mm !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+      }
+      header {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        padding: 10px 16px !important;
+        border-radius: 10px !important;
+        margin-bottom: 6px !important;
+      }
+      #reportBanner { margin-bottom: 6px !important; padding: 6px 12px !important; }
+      #kpiGrid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 8px !important;
+      }
+      #kpiGrid > div {
+        padding: 8px 12px !important;
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+      #chartsGrid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+        flex: 1 !important;
+        margin-bottom: 0 !important;
+      }
+      #chartsGrid > div {
+        padding: 8px 12px !important;
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .chart-box { height: 76mm !important; width: 100% !important; }
+      #printPage2And3 { width: 100% !important; }
       .table-container { max-height: none !important; overflow: visible !important; }
-      header { background: #1e3a8a !important; color: white !important; padding: 10px !important; }
+      table {
+        width: 100% !important;
+        table-layout: auto !important;
+        font-size: var(--print-font-size, 8.5px) !important;
+        border-collapse: collapse !important;
+      }
+      thead { display: table-header-group !important; }
+      thead th { position: static !important; padding: 4px 4px !important; font-size: 8px !important; }
+      tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+      tbody td { padding: var(--print-cell-pad, 3.5px 4px) !important; line-height: 1.15 !important; }
+      tr.force-page-3 { page-break-before: always !important; break-before: page !important; }
+      #printFooter {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-top: 8px !important;
+        padding-top: 6px !important;
+        border-top: 1px solid #94a3b8 !important;
+        font-size: 9px !important;
+        color: #475569 !important;
+      }
     }
   </style>
 </head>
 <body class="text-slate-800">
 
-  <!-- Official Executive Header -->
-  <header class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-950 text-white shadow-lg border-b-4 border-amber-500">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
-      <div class="flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center font-extrabold text-amber-400 text-lg tracking-wider shadow-inner">
-          CSC
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg md:text-2xl font-extrabold tracking-tight">CSC SPV CHHATTISGARH — PMS DASHBOARD</h1>
-            <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-slate-950 px-2 py-0.5 rounded">FY 2026-27</span>
+  <!-- PAGE 1 WRAPPER -->
+  <div id="printPage1">
+    <!-- Official Executive Header -->
+    <header class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-950 text-white shadow-lg border-b-4 border-amber-500">
+      <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col xl:flex-row justify-between items-center gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center font-extrabold text-amber-400 text-base tracking-wider shadow-inner">
+            CSC
           </div>
-          <p class="text-xs text-blue-200 mt-0.5">District & Vertical Wise Performance Monitoring (Target vs Achievement)</p>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base md:text-xl font-extrabold tracking-tight">CSC SPV CHHATTISGARH — PMS DASHBOARD</h1>
+              <span class="inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-slate-950 px-2 py-0.5 rounded">FY 2026-27</span>
+            </div>
+            <p class="text-[11px] text-blue-200 mt-0.5">District & Vertical Wise Performance Monitoring (Target vs Achievement)</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-1.5 no-print">
+          <!-- Language Switch (EN / HI) -->
+          <div class="inline-flex bg-white/10 p-0.5 rounded-lg border border-white/15 mr-1">
+            <button onclick="setLang('EN')" id="langEN" class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 text-slate-950 transition">EN</button>
+            <button onclick="setLang('HI')" id="langHI" class="px-2.5 py-1 rounded-md text-[11px] font-bold text-blue-100 hover:text-white transition">हिं</button>
+          </div>
+
+          <span id="syncTime" class="text-[11px] bg-white/10 text-blue-100 px-2.5 py-1.5 rounded-lg border border-white/10">
+            Syncing 0%...
+          </span>
+          <button onclick="forceRefreshData()" id="refreshBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow transition">
+            🔄 Sync
+          </button>
+          <button onclick="copyDistrictLink()" id="linkBtn" class="bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow transition">
+            🔗 District Link
+          </button>
+          <button onclick="copyWhatsAppSummary()" id="waBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow transition">
+            📋 District WA Msg
+          </button>
+          <button onclick="copyStateRankingWA()" id="stateWaBtn" class="bg-teal-600 hover:bg-teal-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow transition">
+            🏆 Top/Med/Low WA
+          </button>
+          <button onclick="prepareThreePagePrint()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow transition">
+            🖨️ Print PDF
+          </button>
+          <button onclick="exportToCSV()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold px-3 py-1.5 rounded-lg shadow transition">
+            ⬇️ CSV
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 pt-4 w-full flex-1 flex flex-col justify-between">
+      <!-- Filter Control Panel -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-4 no-print">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">1. Select District</label>
+            <select id="districtFilter" onchange="onDistrictChange()" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+              <option value="ALL">ALL DISTRICTS (STATE TOTAL)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">2. Select Vertical</label>
+            <select id="verticalFilter" onchange="renderAll()" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+              <option value="ALL">ALL VERTICALS</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">3. Period Category</label>
+            <select id="periodCategory" onchange="updatePeriodOptions()" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+              <option value="MONTHLY">Monthly</option>
+              <option value="QUARTERLY">Quarterly</option>
+              <option value="HALFYEARLY">Half-Yearly</option>
+              <option value="ANNUALLY" selected>Annually (Yearly)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">4. Select Period</label>
+            <select id="periodSelect" onchange="renderAll()" class="w-full border-2 border-blue-500 bg-blue-50/70 rounded-xl px-3 py-2 text-sm font-bold text-blue-950 focus:ring-2 focus:ring-blue-600 focus:outline-none">
+              <option value="YEARLY">YEARLY</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-2 no-print">
-        <span id="syncTime" class="text-[11px] bg-white/10 text-blue-100 px-3 py-1.5 rounded-lg border border-white/10">
-          Syncing 0%...
-        </span>
-        <button onclick="forceRefreshData()" id="refreshBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow transition">
-          🔄 Force Sync
-        </button>
-        <button onclick="copyWhatsAppSummary()" id="waBtn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition">
-          📋 WhatsApp Summary
-        </button>
-        <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition">
-          🖨️ Print / PDF
-        </button>
-        <button onclick="exportToCSV()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-lg shadow transition">
-          ⬇️ Export CSV
-        </button>
+      <!-- Live Sync Progress Bar Banner -->
+      <div id="syncBanner" class="bg-white border border-blue-200 rounded-xl shadow-sm mb-4 px-4 py-2.5 no-print">
+        <div class="flex justify-between items-center text-xs font-bold text-blue-950 mb-1">
+          <span id="syncStatusText">Connecting to Google Sheet Server...</span>
+          <span id="syncPercentText" class="text-sm font-extrabold text-blue-700">0%</span>
+        </div>
+        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden p-0.5">
+          <div id="syncProgressBar" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-1.5 rounded-full progress-striped transition-all duration-200" style="width: 0%"></div>
+        </div>
       </div>
-    </div>
-  </header>
 
-  <!-- Live Sync Progress Bar Banner (Visible during Sync) -->
-  <div id="syncBanner" class="bg-white border-b border-blue-200 shadow-sm no-print">
-    <div class="max-w-7xl mx-auto px-4 py-3">
-      <div class="flex justify-between items-center text-xs font-bold text-blue-950 mb-1.5">
-        <span id="syncStatusText">Connecting to Google Sheet Server...</span>
-        <span id="syncPercentText" class="text-sm font-extrabold text-blue-700">0%</span>
+      <!-- Active Selection & Remaining Days Banner -->
+      <div id="reportBanner" class="mb-4 flex flex-wrap justify-between items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-xl text-xs">
+        <div>
+          <span class="text-slate-400">Viewing Report:</span>
+          <strong id="bannerTitle" class="text-amber-400 ml-1 uppercase">ALL DISTRICTS | ALL VERTICALS | YEARLY</strong>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="daysLeftBadge" class="bg-blue-900/90 border border-blue-500/40 text-blue-200 px-2.5 py-0.5 rounded-md font-semibold">
+            Calculating pacing...
+          </span>
+        </div>
       </div>
-      <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden p-0.5">
-        <div id="syncProgressBar" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-2 rounded-full progress-striped transition-all duration-200" style="width: 0%"></div>
+
+      <!-- Top KPI Cards (Stacked + Daily Required Run-Rate) -->
+      <div id="kpiGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+        <!-- TXN Card -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-blue-600 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
+            <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Transactions (TXN)</span>
+            <span id="kpiTxnPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
+          </div>
+          <div class="space-y-1 text-sm num-font">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Target</span>
+              <span id="kpiTxnTgt" class="font-bold text-slate-700">0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Achieved</span>
+              <span id="kpiTxnAch" class="text-base font-extrabold text-blue-900">0</span>
+            </div>
+            <div class="flex justify-between items-center pt-1 border-t border-dashed border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Shortfall</span>
+              <span id="kpiTxnGap" class="font-bold text-rose-600">0</span>
+            </div>
+            <div class="flex justify-between items-center bg-blue-50/80 px-2.5 py-1 rounded-lg mt-1">
+              <span class="text-[10px] font-bold text-blue-800 uppercase">Req. Daily Run-Rate</span>
+              <span id="kpiTxnRate" class="text-xs font-extrabold text-blue-950">0 / day</span>
+            </div>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+            <div id="kpiTxnBar" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- AMT Card -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-indigo-600 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
+            <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Amount (AMT in ₹)</span>
+            <span id="kpiAmtPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
+          </div>
+          <div class="space-y-1 text-sm num-font">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Target</span>
+              <span id="kpiAmtTgt" class="font-bold text-slate-700">0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Achieved</span>
+              <span id="kpiAmtAch" class="text-base font-extrabold text-indigo-900">0</span>
+            </div>
+            <div class="flex justify-between items-center pt-1 border-t border-dashed border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Shortfall</span>
+              <span id="kpiAmtGap" class="font-bold text-rose-600">0</span>
+            </div>
+            <div class="flex justify-between items-center bg-indigo-50/80 px-2.5 py-1 rounded-lg mt-1">
+              <span class="text-[10px] font-bold text-indigo-800 uppercase">Req. Daily Run-Rate</span>
+              <span id="kpiAmtRate" class="text-xs font-extrabold text-indigo-950">₹ 0 / day</span>
+            </div>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+            <div id="kpiAmtBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- REV Card -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-600 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
+            <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Revenue (REV in ₹)</span>
+            <span id="kpiRevPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
+          </div>
+          <div class="space-y-1 text-sm num-font">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Target</span>
+              <span id="kpiRevTgt" class="font-bold text-slate-700">0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Achieved</span>
+              <span id="kpiRevAch" class="text-base font-extrabold text-emerald-900">0</span>
+            </div>
+            <div class="flex justify-between items-center pt-1 border-t border-dashed border-slate-200">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">Shortfall</span>
+              <span id="kpiRevGap" class="font-bold text-rose-600">0</span>
+            </div>
+            <div class="flex justify-between items-center bg-emerald-50/80 px-2.5 py-1 rounded-lg mt-1">
+              <span class="text-[10px] font-bold text-emerald-800 uppercase">Req. Daily Run-Rate</span>
+              <span id="kpiRevRate" class="text-xs font-extrabold text-emerald-950">₹ 0 / day</span>
+            </div>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+            <div id="kpiRevBar" class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Charts Section -->
+      <div id="chartsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-bold text-slate-800">Vertical-wise Target vs Achievement</h3>
+            <select id="chartMetric" onchange="renderCharts()" class="text-xs border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-slate-50 no-print">
+              <option value="txn">Transactions (TXN)</option>
+              <option value="amt">Amount (AMT)</option>
+              <option value="rev">Revenue (REV)</option>
+            </select>
+          </div>
+          <div class="h-60 chart-box">
+            <canvas id="verticalChart"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-bold text-slate-800">Month-on-Month Performance Trend (Apr – Mar)</h3>
+            <span class="text-[11px] font-medium text-slate-400">Selected District & Vertical</span>
+          </div>
+          <div class="h-60 chart-box">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6">
+  <!-- PAGE 2 & PAGE 3 WRAPPER -->
+  <main id="printPage2And3" class="max-w-7xl mx-auto px-4 pb-8">
 
-    <!-- Filter Control Panel -->
-    <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 no-print">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">1. Select District</label>
-          <select id="districtFilter" onchange="renderAll()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="ALL">ALL DISTRICTS (STATE TOTAL)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">2. Select Vertical</label>
-          <select id="verticalFilter" onchange="renderAll()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="ALL">ALL VERTICALS</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">3. Period Category</label>
-          <select id="periodCategory" onchange="updatePeriodOptions()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="MONTHLY">Monthly</option>
-            <option value="QUARTERLY">Quarterly</option>
-            <option value="HALFYEARLY">Half-Yearly</option>
-            <option value="ANNUALLY" selected>Annually (Yearly)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">4. Select Period</label>
-          <select id="periodSelect" onchange="renderAll()" class="w-full border-2 border-blue-500 bg-blue-50/70 rounded-xl px-3 py-2.5 text-sm font-bold text-blue-950 focus:ring-2 focus:ring-blue-600 focus:outline-none">
-            <option value="YEARLY">YEARLY</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Selection Banner -->
-    <div class="mb-4 flex flex-wrap justify-between items-center gap-2 bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs">
-      <div>
-        <span class="text-slate-400">Viewing Report:</span>
-        <strong id="bannerTitle" class="text-amber-400 ml-1 uppercase">ALL DISTRICTS | ALL VERTICALS | YEARLY</strong>
-      </div>
-      <div class="text-slate-300">All figures are rounded-up whole numbers</div>
-    </div>
-
-    <!-- Top KPI Cards (Overlap-Free Stacked Layout for Large Numbers) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-      <!-- TXN Card -->
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-blue-600 flex flex-col justify-between">
-        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-          <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Transactions (TXN)</span>
-          <span id="kpiTxnPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
-        </div>
-        <div class="space-y-1.5 text-sm num-font">
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Target</span>
-            <span id="kpiTxnTgt" class="font-bold text-slate-700">0</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Achieved</span>
-            <span id="kpiTxnAch" class="text-base font-extrabold text-blue-900">0</span>
-          </div>
-          <div class="flex justify-between items-center pt-1 border-t border-dashed border-slate-200">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Shortfall</span>
-            <span id="kpiTxnGap" class="font-bold text-rose-600">0</span>
-          </div>
-        </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-3.5 overflow-hidden">
-          <div id="kpiTxnBar" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-        </div>
-      </div>
-
-      <!-- AMT Card -->
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-indigo-600 flex flex-col justify-between">
-        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-          <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Amount (AMT in ₹)</span>
-          <span id="kpiAmtPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
-        </div>
-        <div class="space-y-1.5 text-sm num-font">
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Target</span>
-            <span id="kpiAmtTgt" class="font-bold text-slate-700">0</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Achieved</span>
-            <span id="kpiAmtAch" class="text-base font-extrabold text-indigo-900">0</span>
-          </div>
-          <div class="flex justify-between items-center pt-1 border-t border-dashed border-slate-200">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Shortfall</span>
-            <span id="kpiAmtGap" class="font-bold text-rose-600">0</span>
-          </div>
-        </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-3.5 overflow-hidden">
-          <div id="kpiAmtBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-        </div>
-      </div>
-
-      <!-- REV Card -->
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-600 flex flex-col justify-between">
-        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-          <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Revenue (REV in ₹)</span>
-          <span id="kpiRevPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
-        </div>
-        <div class="space-y-1.5 text-sm num-font">
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Target</span>
-            <span id="kpiRevTgt" class="font-bold text-slate-700">0</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Achieved</span>
-            <span id="kpiRevAch" class="text-base font-extrabold text-emerald-900">0</span>
-          </div>
-          <div class="flex justify-between items-center pt-1 border-t border-dashed border-slate-200">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Shortfall</span>
-            <span id="kpiRevGap" class="font-bold text-rose-600">0</span>
-          </div>
-        </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-3.5 overflow-hidden">
-          <div id="kpiRevBar" class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Interactive Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 no-print">
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-sm font-bold text-slate-800">Vertical-wise Target vs Achievement</h3>
-          <select id="chartMetric" onchange="renderCharts()" class="text-xs border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-slate-50">
-            <option value="txn">Transactions (TXN)</option>
-            <option value="amt">Amount (AMT)</option>
-            <option value="rev">Revenue (REV)</option>
-          </select>
-        </div>
-        <div class="h-64">
-          <canvas id="verticalChart"></canvas>
-        </div>
-      </div>
-
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-sm font-bold text-slate-800">Month-on-Month Performance Trend (Apr – Mar)</h3>
-          <span class="text-[11px] font-medium text-slate-400">Selected District & Vertical</span>
-        </div>
-        <div class="h-64">
-          <canvas id="trendChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
+    <!-- Navigation Tabs & Status Quick-Filters -->
     <div class="flex flex-wrap justify-between items-center gap-3 mb-4 no-print">
       <div class="inline-flex bg-slate-200 p-1 rounded-xl">
         <button onclick="switchTab('activity')" id="tabActivityBtn" class="px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition">
@@ -262,6 +364,9 @@
         <button onclick="setStatusFilter('ACHIEVED')" id="pill-ACHIEVED" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Achieved (100%+)</button>
         <button onclick="setStatusFilter('NEAR')" id="pill-NEAR" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">Near Target (75-99%)</button>
         <button onclick="setStatusFilter('CRITICAL')" id="pill-CRITICAL" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 hover:bg-rose-200">Critical (&lt;50%)</button>
+        <button onclick="setStatusFilter('ZERO')" id="pill-ZERO" class="status-pill px-3 py-1.5 rounded-full text-xs font-bold bg-red-600 text-white hover:bg-red-700 flex items-center gap-1">
+          ⚠️ Zero Achievement (<span id="zeroCountBadge">0</span>)
+        </button>
       </div>
     </div>
 
@@ -273,7 +378,7 @@
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div id="loader" class="p-12 text-center text-slate-600 font-semibold text-sm">
+        <div id="loader" class="p-12 text-center text-slate-600 font-semibold text-sm no-print">
           <div class="text-2xl font-extrabold text-blue-700 mb-1" id="centerLoaderPct">0%</div>
           <div id="centerLoaderMsg">Synchronizing data from Google Sheet...</div>
         </div>
@@ -283,7 +388,7 @@
               <tr class="bg-slate-900 text-white">
                 <th rowspan="2" class="px-3 py-2.5 border border-slate-700">S.No</th>
                 <th rowspan="2" class="px-3 py-2.5 border border-slate-700">Vertical</th>
-                <th rowspan="2" class="px-3 py-2.5 border border-slate-700 min-w-[200px]">Business Activity</th>
+                <th rowspan="2" class="px-3 py-2.5 border border-slate-700 min-w-[190px]">Business Activity</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-blue-900">TARGET</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-emerald-900">ACHIEVEMENT</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-rose-950">BALANCE / SHORTFALL</th>
@@ -316,16 +421,18 @@
         <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
           <div>
             <h3 class="text-sm font-bold text-slate-800">District Performance Ranking (33 Districts)</h3>
-            <p class="text-xs text-slate-500">Kisi bhi District par click karke uska detailed Business Activity report dekhein</p>
+            <p class="text-xs text-slate-500 no-print">Kisi bhi District par click karke uska detailed Business Activity report dekhein</p>
           </div>
-          <select id="rankSortBy" onchange="renderLeaderboard()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 font-bold bg-white">
-            <option value="txnPct">Rank by TXN %</option>
-            <option value="amtPct">Rank by AMT %</option>
-            <option value="revPct">Rank by REV %</option>
-          </select>
+          <div class="flex items-center gap-2 no-print">
+            <select id="rankSortBy" onchange="renderLeaderboard()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 font-bold bg-white">
+              <option value="txnPct">Rank by TXN %</option>
+              <option value="amtPct">Rank by AMT %</option>
+              <option value="revPct">Rank by REV %</option>
+            </select>
+          </div>
         </div>
         <div class="table-container">
-          <table class="w-full text-xs text-left border-collapse num-font">
+          <table class="w-full text-xs text-left border-collapse num-font" id="leaderboardTable">
             <thead>
               <tr class="bg-slate-900 text-white">
                 <th class="px-3 py-2.5 border border-slate-700 text-center">Rank</th>
@@ -347,6 +454,12 @@
       </div>
     </div>
 
+    <!-- Official Print Footer -->
+    <div id="printFooter" class="hidden">
+      <div><strong>CSC e-Governance Services India Limited</strong> — Chhattisgarh State Office, Raipur</div>
+      <div id="printGeneratedTime">Generated on: --</div>
+    </div>
+
   </main>
 
   <script>
@@ -356,7 +469,10 @@
 
     let rawData = [];
     let currentFilteredRows = [];
+    let latestRankList = [];
     let activeStatusFilter = "ALL";
+    let activeTab = "activity";
+    let currentLang = "EN";
     let verticalChartInstance = null;
     let trendChartInstance = null;
     let syncTimer = null;
@@ -378,6 +494,128 @@
       "ANNUALLY": ["YEARLY"]
     };
 
+    // Language Switcher (EN / HI)
+    function setLang(lang) {
+      currentLang = lang;
+      const btnEn = document.getElementById("langEN");
+      const btnHi = document.getElementById("langHI");
+      if (lang === "EN") {
+        btnEn.className = "px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 text-slate-950 transition";
+        btnHi.className = "px-2.5 py-1 rounded-md text-[11px] font-bold text-blue-100 hover:text-white transition";
+        document.getElementById("waBtn").innerText = "📋 District WA Msg";
+        document.getElementById("stateWaBtn").innerText = "🏆 Top/Med/Low WA";
+      } else {
+        btnHi.className = "px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 text-slate-950 transition";
+        btnEn.className = "px-2.5 py-1 rounded-md text-[11px] font-bold text-blue-100 hover:text-white transition";
+        document.getElementById("waBtn").innerText = "📋 जिला WA संदेश";
+        document.getElementById("stateWaBtn").innerText = "🏆 राज्य रैंकिंग WA";
+      }
+    }
+
+    // Remaining Days Calculator for Daily Run-Rate (FY 2026-27: Apr 1, 2026 - Mar 31, 2027)
+    function getRemainingDays(period) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const endDates = {
+        "APRIL": new Date(2026, 3, 30),
+        "MAY": new Date(2026, 4, 31),
+        "JUNE": new Date(2026, 5, 30),
+        "QUARTER 1": new Date(2026, 5, 30),
+        "JULY": new Date(2026, 6, 31),
+        "AUGUST": new Date(2026, 7, 31),
+        "SEPTEMBER": new Date(2026, 8, 30),
+        "QUARTER 2": new Date(2026, 8, 30),
+        "HALF YEARLY 1 (APR-SEP)": new Date(2026, 8, 30),
+        "OCTOBER": new Date(2026, 9, 31),
+        "NOVEMBER": new Date(2026, 10, 30),
+        "DECEMBER": new Date(2026, 11, 31),
+        "QUARTER 3": new Date(2026, 11, 31),
+        "JANUARY": new Date(2027, 0, 31),
+        "FEBRUARY": new Date(2027, 1, 28),
+        "MARCH": new Date(2027, 2, 31),
+        "QUARTER 4": new Date(2027, 2, 31),
+        "HALF YEARLY 2 (OCT-MAR)": new Date(2027, 2, 31),
+        "YEARLY": new Date(2027, 2, 31)
+      };
+
+      const end = endDates[period] || new Date(2027, 2, 31);
+      const diffTime = end.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      return diffDays > 0 ? diffDays : 0;
+    }
+
+    // Direct URL Deep-Linking (?district=RAIPUR)
+    function applyUrlDeepLink() {
+      const params = new URLSearchParams(window.location.search);
+      const distParam = params.get("district");
+      if (distParam) {
+        const cleanDist = distParam.trim().toUpperCase();
+        const distSelect = document.getElementById("districtFilter");
+        if ([...distSelect.options].some(o => o.value === cleanDist)) {
+          distSelect.value = cleanDist;
+        }
+      }
+    }
+
+    function onDistrictChange() {
+      const dist = document.getElementById("districtFilter").value;
+      const url = new URL(window.location);
+      if (dist === "ALL") url.searchParams.delete("district");
+      else url.searchParams.set("district", dist);
+      window.history.replaceState({}, "", url);
+      renderAll();
+    }
+
+    function copyDistrictLink() {
+      const dist = document.getElementById("districtFilter").value;
+      const url = new URL(window.location.origin + window.location.pathname);
+      if (dist !== "ALL") url.searchParams.set("district", dist);
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        const btn = document.getElementById("linkBtn");
+        btn.innerText = "✅ Link Copied!";
+        setTimeout(() => btn.innerText = "🔗 District Link", 2200);
+      });
+    }
+
+    // 3-Page Auto-Adjustable Print Controller
+    function prepareThreePagePrint() {
+      const targetBodyId = activeTab === "activity" ? "tableBody" : "leaderboardBody";
+      const tbody = document.getElementById(targetBodyId);
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+
+      rows.forEach(r => r.classList.remove("force-page-3"));
+      const totalRows = rows.length;
+      if (totalRows > 1) {
+        const splitIndex = Math.ceil(totalRows / 2);
+        if (rows[splitIndex]) rows[splitIndex].classList.add("force-page-3");
+      }
+
+      const rowsPerPage = Math.ceil(totalRows / 2);
+      const root = document.documentElement;
+      if (rowsPerPage <= 18) {
+        root.style.setProperty("--print-font-size", "9.5px");
+        root.style.setProperty("--print-cell-pad", "5.5px 5px");
+      } else if (rowsPerPage <= 28) {
+        root.style.setProperty("--print-font-size", "8.5px");
+        root.style.setProperty("--print-cell-pad", "3.8px 4px");
+      } else if (rowsPerPage <= 38) {
+        root.style.setProperty("--print-font-size", "7.5px");
+        root.style.setProperty("--print-cell-pad", "2.5px 3.5px");
+      } else {
+        root.style.setProperty("--print-font-size", "6.8px");
+        root.style.setProperty("--print-cell-pad", "1.8px 3px");
+      }
+
+      const now = new Date();
+      document.getElementById("printGeneratedTime").innerText =
+        "Printed on: " + now.toLocaleDateString('en-IN') + " " + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + " | 3-Page Executive Report";
+
+      if (verticalChartInstance) verticalChartInstance.resize();
+      if (trendChartInstance) trendChartInstance.resize();
+      setTimeout(() => window.print(), 250);
+    }
+
     function updateSyncProgress(pct, msg) {
       currentSyncPct = Math.min(100, Math.max(0, Math.round(pct)));
       document.getElementById("syncProgressBar").style.width = currentSyncPct + "%";
@@ -396,15 +634,10 @@
       document.getElementById("syncBanner").classList.remove("hidden");
       updateSyncProgress(5, "Connecting to Google Sheet Server...");
       clearInterval(syncTimer);
-
       syncTimer = setInterval(() => {
-        if (currentSyncPct < 45) {
-          updateSyncProgress(currentSyncPct + 4, "Reading 'New Compiled Data' records...");
-        } else if (currentSyncPct < 78) {
-          updateSyncProgress(currentSyncPct + 2, "Downloading & compressing district metrics...");
-        } else if (currentSyncPct < 92) {
-          updateSyncProgress(currentSyncPct + 0.5, "Finalizing calculations...");
-        }
+        if (currentSyncPct < 45) updateSyncProgress(currentSyncPct + 4, "Reading 'New Compiled Data' records...");
+        else if (currentSyncPct < 78) updateSyncProgress(currentSyncPct + 2, "Downloading & compressing district metrics...");
+        else if (currentSyncPct < 92) updateSyncProgress(currentSyncPct + 0.5, "Finalizing calculations...");
       }, 150);
     }
 
@@ -413,15 +646,12 @@
       updateSyncProgress(100, "Synchronization Complete!");
       const d = timestamp ? new Date(timestamp) : new Date();
       document.getElementById("syncTime").innerText = "Synced: " + d.toLocaleDateString('en-IN') + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      setTimeout(() => {
-        document.getElementById("syncBanner").classList.add("hidden");
-      }, 900);
+      setTimeout(() => document.getElementById("syncBanner").classList.add("hidden"), 900);
     }
 
     function unpackPayload(json) {
       const { districts, verticals, activities, rows } = json;
       const result = new Array(rows.length);
-
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
         const metrics = {};
@@ -442,7 +672,6 @@
           t_txn: q3.t_txn + q4.t_txn, t_amt: q3.t_amt + q4.t_amt, t_rev: q3.t_rev + q4.t_rev,
           a_txn: q3.a_txn + q4.a_txn, a_amt: q3.a_amt + q4.a_amt, a_rev: q3.a_rev + q4.a_rev
         };
-
         result[i] = {
           district: districts[r[0]],
           vertical: verticals[r[1]],
@@ -455,19 +684,18 @@
 
     window.onload = async () => {
       updatePeriodOptions(false);
-
       const cachedRaw = localStorage.getItem(LOCAL_CACHE_KEY);
       if (cachedRaw) {
         try {
           const parsed = JSON.parse(cachedRaw);
           rawData = unpackPayload(parsed);
           populateDropdowns();
+          applyUrlDeepLink();
           document.getElementById("loader").classList.add("hidden");
           document.getElementById("tableWrapper").classList.remove("hidden");
           renderAll();
         } catch (e) {}
       }
-
       await fetchLiveData(false);
     };
 
@@ -477,7 +705,7 @@
       btn.innerText = "⏳ Syncing...";
       await fetchLiveData(true);
       btn.disabled = false;
-      btn.innerText = "🔄 Force Sync";
+      btn.innerText = "🔄 Sync";
     }
 
     async function fetchLiveData(force) {
@@ -492,6 +720,7 @@
           localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(json));
           rawData = unpackPayload(json);
           populateDropdowns();
+          applyUrlDeepLink();
           document.getElementById("loader").classList.add("hidden");
           document.getElementById("tableWrapper").classList.remove("hidden");
           renderAll();
@@ -565,6 +794,7 @@
     }
 
     function switchTab(tab) {
+      activeTab = tab;
       const actSec = document.getElementById("activitySection");
       const leadSec = document.getElementById("leaderboardSection");
       const actBtn = document.getElementById("tabActivityBtn");
@@ -595,6 +825,12 @@
       const vert = document.getElementById("verticalFilter").value;
       const period = document.getElementById("periodSelect").value;
       document.getElementById("bannerTitle").innerText = `${dist} | ${vert} | ${period}`;
+
+      const remDays = getRemainingDays(period);
+      document.getElementById("daysLeftBadge").innerText = remDays > 0
+        ? `⏳ ${remDays} Days Remaining in ${period}`
+        : `✅ ${period} Period Completed`;
+
       renderTable();
       renderCharts();
       renderLeaderboard();
@@ -627,22 +863,27 @@
         entry.a_txn += ceilNum(m.a_txn); entry.a_amt += ceilNum(m.a_amt); entry.a_rev += ceilNum(m.a_rev);
       });
 
-      let rows = Array.from(aggregatedMap.values());
+      let allRows = Array.from(aggregatedMap.values());
+
+      // Zero Achievement Alert Count (Target > 0 but Achievement == 0)
+      const zeroCount = allRows.filter(r => (r.t_txn > 0 || r.t_rev > 0) && r.a_txn === 0 && r.a_rev === 0).length;
+      document.getElementById("zeroCountBadge").innerText = zeroCount;
 
       let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0, totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
-      rows.forEach(r => {
+      allRows.forEach(r => {
         totT_Txn += r.t_txn; totT_Amt += r.t_amt; totT_Rev += r.t_rev;
         totA_Txn += r.a_txn; totA_Amt += r.a_amt; totA_Rev += r.a_rev;
       });
       updateKPICards(totT_Txn, totA_Txn, totT_Amt, totA_Amt, totT_Rev, totA_Rev);
 
-      rows = rows.filter(r => {
+      let rows = allRows.filter(r => {
         const matchSearch = r.activity.toLowerCase().includes(searchQuery) || r.vertical.toLowerCase().includes(searchQuery);
         if (!matchSearch) return false;
         const pct = calcPctNum(r.a_txn, r.t_txn);
         if (activeStatusFilter === "ACHIEVED") return pct >= 100;
         if (activeStatusFilter === "NEAR") return pct >= 75 && pct < 100;
         if (activeStatusFilter === "CRITICAL") return pct < 50;
+        if (activeStatusFilter === "ZERO") return (r.t_txn > 0 || r.t_rev > 0) && r.a_txn === 0 && r.a_rev === 0;
         return true;
       });
 
@@ -658,33 +899,37 @@
         const gapTxn = calcShortfall(row.t_txn, row.a_txn);
         const gapAmt = calcShortfall(row.t_amt, row.a_amt);
         const gapRev = calcShortfall(row.t_rev, row.a_rev);
+        const isZero = (row.t_txn > 0 || row.t_rev > 0) && row.a_txn === 0 && row.a_rev === 0;
 
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-blue-50/60 transition";
+        tr.className = isZero ? "bg-rose-50/40 hover:bg-rose-100/50 transition" : "hover:bg-blue-50/60 transition";
         tr.innerHTML = `
-          <td class="px-3 py-2.5 border border-slate-200 text-slate-500 font-medium">${idx + 1}</td>
-          <td class="px-3 py-2.5 border border-slate-200 font-bold text-indigo-900">${row.vertical}</td>
-          <td class="px-3 py-2.5 border border-slate-200 font-semibold text-slate-900">${row.activity}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right">${formatNum(row.t_txn)}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right">${formatNum(row.t_amt)}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right">${formatNum(row.t_rev)}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_txn)}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_amt)}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_rev)}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right font-semibold ${gapTxn > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapTxn > 0 ? formatNum(gapTxn) : '0'}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right font-semibold ${gapAmt > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapAmt > 0 ? formatNum(gapAmt) : '0'}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right font-semibold ${gapRev > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapRev > 0 ? formatNum(gapRev) : '0'}</td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right">
+          <td class="px-3 py-2 border border-slate-200 text-slate-500 font-medium">${idx + 1}</td>
+          <td class="px-3 py-2 border border-slate-200 font-bold text-indigo-900">${row.vertical}</td>
+          <td class="px-3 py-2 border border-slate-200 font-semibold text-slate-900">
+            ${row.activity}
+            ${isZero ? '<span class="ml-1.5 text-[9px] font-extrabold bg-red-600 text-white px-1.5 py-0.5 rounded uppercase no-print">Zero Ach</span>' : ''}
+          </td>
+          <td class="px-2 py-2 border border-slate-200 text-right">${formatNum(row.t_txn)}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right">${formatNum(row.t_amt)}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right">${formatNum(row.t_rev)}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_txn)}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_amt)}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_rev)}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right font-semibold ${gapTxn > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapTxn > 0 ? formatNum(gapTxn) : '0'}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right font-semibold ${gapAmt > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapAmt > 0 ? formatNum(gapAmt) : '0'}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right font-semibold ${gapRev > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapRev > 0 ? formatNum(gapRev) : '0'}</td>
+          <td class="px-2 py-2 border border-slate-200 text-right">
             <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctTxn)}">${pctTxn}%</span>
-            <div class="w-full bg-slate-200 h-1 rounded-full mt-1"><div class="${getBarColor(pctTxn)} h-1 rounded-full" style="width:${Math.min(pctTxn, 100)}%"></div></div>
+            <div class="w-full bg-slate-200 h-1 rounded-full mt-1 no-print"><div class="${getBarColor(pctTxn)} h-1 rounded-full" style="width:${Math.min(pctTxn, 100)}%"></div></div>
           </td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right">
+          <td class="px-2 py-2 border border-slate-200 text-right">
             <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctAmt)}">${pctAmt}%</span>
-            <div class="w-full bg-slate-200 h-1 rounded-full mt-1"><div class="${getBarColor(pctAmt)} h-1 rounded-full" style="width:${Math.min(pctAmt, 100)}%"></div></div>
+            <div class="w-full bg-slate-200 h-1 rounded-full mt-1 no-print"><div class="${getBarColor(pctAmt)} h-1 rounded-full" style="width:${Math.min(pctAmt, 100)}%"></div></div>
           </td>
-          <td class="px-2 py-2.5 border border-slate-200 text-right">
+          <td class="px-2 py-2 border border-slate-200 text-right">
             <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctRev)}">${pctRev}%</span>
-            <div class="w-full bg-slate-200 h-1 rounded-full mt-1"><div class="${getBarColor(pctRev)} h-1 rounded-full" style="width:${Math.min(pctRev, 100)}%"></div></div>
+            <div class="w-full bg-slate-200 h-1 rounded-full mt-1 no-print"><div class="${getBarColor(pctRev)} h-1 rounded-full" style="width:${Math.min(pctRev, 100)}%"></div></div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -694,23 +939,34 @@
     }
 
     function updateKPICards(tTxn, aTxn, tAmt, aAmt, tRev, aRev) {
+      const period = document.getElementById("periodSelect").value;
+      const remDays = getRemainingDays(period);
+
       const pTxn = calcPctNum(aTxn, tTxn), pAmt = calcPctNum(aAmt, tAmt), pRev = calcPctNum(aRev, tRev);
+      const gapTxn = calcShortfall(tTxn, aTxn), gapAmt = calcShortfall(tAmt, aAmt), gapRev = calcShortfall(tRev, aRev);
+
+      const rateTxn = remDays > 0 ? Math.ceil(gapTxn / remDays) : gapTxn;
+      const rateAmt = remDays > 0 ? Math.ceil(gapAmt / remDays) : gapAmt;
+      const rateRev = remDays > 0 ? Math.ceil(gapRev / remDays) : gapRev;
 
       document.getElementById("kpiTxnTgt").innerText = formatNum(tTxn);
       document.getElementById("kpiTxnAch").innerText = formatNum(aTxn);
-      document.getElementById("kpiTxnGap").innerText = formatNum(calcShortfall(tTxn, aTxn));
+      document.getElementById("kpiTxnGap").innerText = formatNum(gapTxn);
+      document.getElementById("kpiTxnRate").innerText = gapTxn > 0 ? `${formatNum(rateTxn)} / day` : "Target Achieved 🎉";
       document.getElementById("kpiTxnPct").innerText = pTxn + "%";
       document.getElementById("kpiTxnBar").style.width = Math.min(pTxn, 100) + "%";
 
       document.getElementById("kpiAmtTgt").innerText = "₹ " + formatNum(tAmt);
       document.getElementById("kpiAmtAch").innerText = "₹ " + formatNum(aAmt);
-      document.getElementById("kpiAmtGap").innerText = "₹ " + formatNum(calcShortfall(tAmt, aAmt));
+      document.getElementById("kpiAmtGap").innerText = "₹ " + formatNum(gapAmt);
+      document.getElementById("kpiAmtRate").innerText = gapAmt > 0 ? `₹ ${formatNum(rateAmt)} / day` : "Target Achieved 🎉";
       document.getElementById("kpiAmtPct").innerText = pAmt + "%";
       document.getElementById("kpiAmtBar").style.width = Math.min(pAmt, 100) + "%";
 
       document.getElementById("kpiRevTgt").innerText = "₹ " + formatNum(tRev);
       document.getElementById("kpiRevAch").innerText = "₹ " + formatNum(aRev);
-      document.getElementById("kpiRevGap").innerText = "₹ " + formatNum(calcShortfall(tRev, aRev));
+      document.getElementById("kpiRevGap").innerText = "₹ " + formatNum(gapRev);
+      document.getElementById("kpiRevRate").innerText = gapRev > 0 ? `₹ ${formatNum(rateRev)} / day` : "Target Achieved 🎉";
       document.getElementById("kpiRevPct").innerText = pRev + "%";
       document.getElementById("kpiRevBar").style.width = Math.min(pRev, 100) + "%";
     }
@@ -744,7 +1000,7 @@
             { label: 'Achievement', data: vAchs, backgroundColor: '#2563eb', borderRadius: 4 }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+        options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'top' } } }
       });
 
       const bothFiltered = rawData.filter(r => {
@@ -766,7 +1022,7 @@
             { label: 'Monthly Achievement', data: mAchs, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.12)', tension: 0.3, fill: true }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+        options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'top' } } }
       });
     }
 
@@ -796,6 +1052,7 @@
       }));
 
       rankList.sort((a, b) => b[sortBy] - a[sortBy]);
+      latestRankList = rankList;
 
       const tbody = document.getElementById("leaderboardBody");
       tbody.innerHTML = "";
@@ -806,48 +1063,124 @@
         tr.className = "hover:bg-blue-50 cursor-pointer transition";
         tr.onclick = () => {
           document.getElementById("districtFilter").value = d.district;
+          onDistrictChange();
           switchTab("activity");
-          renderAll();
         };
         tr.innerHTML = `
-          <td class="px-3 py-2.5 border border-slate-200 text-center font-extrabold text-slate-800">${medal}</td>
-          <td class="px-3 py-2.5 border border-slate-200 font-bold text-blue-900 underline decoration-blue-300">${d.district}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right">${formatNum(d.t_txn)}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right font-bold">${formatNum(d.a_txn)}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.txnPct)}">${d.txnPct}%</span></td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right">${formatNum(d.t_amt)}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right font-bold">${formatNum(d.a_amt)}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.amtPct)}">${d.amtPct}%</span></td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right">${formatNum(d.t_rev)}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right font-bold">${formatNum(d.a_rev)}</td>
-          <td class="px-3 py-2.5 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.revPct)}">${d.revPct}%</span></td>
+          <td class="px-3 py-2 border border-slate-200 text-center font-extrabold text-slate-800">${medal}</td>
+          <td class="px-3 py-2 border border-slate-200 font-bold text-blue-900 underline decoration-blue-300">${d.district}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right">${formatNum(d.t_txn)}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right font-bold">${formatNum(d.a_txn)}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.txnPct)}">${d.txnPct}%</span></td>
+          <td class="px-3 py-2 border border-slate-200 text-right">${formatNum(d.t_amt)}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right font-bold">${formatNum(d.a_amt)}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.amtPct)}">${d.amtPct}%</span></td>
+          <td class="px-3 py-2 border border-slate-200 text-right">${formatNum(d.t_rev)}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right font-bold">${formatNum(d.a_rev)}</td>
+          <td class="px-3 py-2 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.revPct)}">${d.revPct}%</span></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
+    // =========================================================
+    // 1. DISTRICT-SPECIFIC WHATSAPP SUMMARY (BILINGUAL EN / HI)
+    // =========================================================
     function copyWhatsAppSummary() {
       const dist = document.getElementById("districtFilter").value;
+      const vert = document.getElementById("verticalFilter").value;
       const period = document.getElementById("periodSelect").value;
       const txnPct = document.getElementById("kpiTxnPct").innerText;
       const revPct = document.getElementById("kpiRevPct").innerText;
+      const txnRate = document.getElementById("kpiTxnRate").innerText;
+      const revRate = document.getElementById("kpiRevRate").innerText;
 
       const sorted = [...currentFilteredRows].sort((a, b) => calcPctNum(b.a_txn, b.t_txn) - calcPctNum(a.a_txn, a.t_txn));
-      const top3 = sorted.slice(0, 3).map((r, i) => `${i + 1}. ${r.activity}: ${calcPctNum(r.a_txn, r.t_txn)}% (${formatNum(r.a_txn)}/${formatNum(r.t_txn)})`).join("\n");
-      const bottom3 = sorted.slice(-3).reverse().map((r, i) => `${i + 1}. ${r.activity}: ${calcPctNum(r.a_txn, r.t_txn)}% (Gap: ${formatNum(calcShortfall(r.t_txn, r.a_txn))})`).join("\n");
+      const top3 = sorted.slice(0, 3).map((r, i) => `${i + 1}. ${r.activity}: *${calcPctNum(r.a_txn, r.t_txn)}%* (${formatNum(r.a_txn)}/${formatNum(r.t_txn)})`).join("\n");
+      const bottom3 = sorted.slice(-3).reverse().map((r, i) => `${i + 1}. ${r.activity}: *${calcPctNum(r.a_txn, r.t_txn)}%* (Gap: ${formatNum(calcShortfall(r.t_txn, r.a_txn))})`).join("\n");
 
-      const msg = `*CSC CHHATTISGARH — PMS REVIEW SUMMARY*\n` +
-                  `📍 *District:* ${dist}\n` +
-                  `📅 *Period:* ${period}\n` +
-                  `📊 *Overall TXN:* ${document.getElementById("kpiTxnAch").innerText} / ${document.getElementById("kpiTxnTgt").innerText} (*${txnPct}*)\n` +
-                  `💰 *Overall REV:* ${document.getElementById("kpiRevAch").innerText} / ${document.getElementById("kpiRevTgt").innerText} (*${revPct}*)\n\n` +
-                  `✅ *Top Performing Activities:*\n${top3 || "N/A"}\n\n` +
-                  `⚠️ *Focus / Lagging Activities:*\n${bottom3 || "N/A"}`;
+      const portalUrl = new URL(window.location.origin + window.location.pathname);
+      if (dist !== "ALL") portalUrl.searchParams.set("district", dist);
+
+      let msg = "";
+      if (currentLang === "HI") {
+        msg = `*CSC छत्तीसगढ़ — PMS समीक्षा रिपोर्ट*\n` +
+              `📍 *जिला:* ${dist} (${vert})\n` +
+              `📅 *अवधि:* ${period}\n` +
+              `📊 *कुल ट्रांजेक्शन (TXN):* ${document.getElementById("kpiTxnAch").innerText} / ${document.getElementById("kpiTxnTgt").innerText} (*${txnPct}*)\n` +
+              `💰 *कुल राजस्व (REV):* ${document.getElementById("kpiRevAch").innerText} / ${document.getElementById("kpiRevTgt").innerText} (*${revPct}*)\n` +
+              `⚡ *दैनिक आवश्यक लक्ष्य:* ${txnRate} | ${revRate}\n\n` +
+              `✅ *शीर्ष प्रदर्शन करने वाली सेवाएं:*\n${top3 || "N/A"}\n\n` +
+              `⚠️ *सुधार हेतु आवश्यक सेवाएं (Focus):*\n${bottom3 || "N/A"}\n\n` +
+              `🔗 *लाइव डैशबोर्ड लिंक:* ${portalUrl.toString()}`;
+      } else {
+        msg = `*CSC CHHATTISGARH — PMS REVIEW SUMMARY*\n` +
+              `📍 *District:* ${dist} (${vert})\n` +
+              `📅 *Period:* ${period}\n` +
+              `📊 *Overall TXN:* ${document.getElementById("kpiTxnAch").innerText} / ${document.getElementById("kpiTxnTgt").innerText} (*${txnPct}*)\n` +
+              `💰 *Overall REV:* ${document.getElementById("kpiRevAch").innerText} / ${document.getElementById("kpiRevTgt").innerText} (*${revPct}*)\n` +
+              `⚡ *Daily Req. Run-Rate:* ${txnRate} | ${revRate}\n\n` +
+              `✅ *Top Performing Activities:*\n${top3 || "N/A"}\n\n` +
+              `⚠️ *Focus / Lagging Activities:*\n${bottom3 || "N/A"}\n\n` +
+              `🔗 *Live Portal:* ${portalUrl.toString()}`;
+      }
 
       navigator.clipboard.writeText(msg).then(() => {
         const btn = document.getElementById("waBtn");
-        btn.innerHTML = "✅ Copied!";
-        setTimeout(() => btn.innerHTML = "📋 WhatsApp Summary", 2500);
+        const old = btn.innerText;
+        btn.innerText = "✅ Copied!";
+        setTimeout(() => btn.innerText = old, 2200);
+      });
+    }
+
+    // =========================================================
+    // 2. TOP, MEDIAN & LOW PERFORMING DISTRICTS WHATSAPP TEMPLATE
+    // =========================================================
+    function copyStateRankingWA() {
+      if (!latestRankList || latestRankList.length === 0) return;
+
+      const vert = document.getElementById("verticalFilter").value;
+      const period = document.getElementById("periodSelect").value;
+      const sortBy = document.getElementById("rankSortBy").value;
+      const metricLabel = sortBy === "txnPct" ? "TXN %" : sortBy === "amtPct" ? "AMT %" : "REV %";
+
+      const total = latestRankList.length;
+      const top5 = latestRankList.slice(0, 5);
+      const midStart = Math.max(0, Math.floor(total / 2) - 2);
+      const median5 = latestRankList.slice(midStart, midStart + 5);
+      const bottom5 = latestRankList.slice(-5).reverse();
+
+      const fmtList = (arr, startRankOffset) => arr.map((d, i) => {
+        const rank = startRankOffset !== null ? (startRankOffset + i + 1) : (latestRankList.indexOf(d) + 1);
+        return `${rank}. *${d.district}* — *${d[sortBy]}%* (Ach: ${formatNum(d.a_txn)} / Tgt: ${formatNum(d.t_txn)})`;
+      }).join("\n");
+
+      let msg = "";
+      if (currentLang === "HI") {
+        msg = `*CSC छत्तीसगढ़ — जिला प्रदर्शन रैंकिंग रिपोर्ट (${metricLabel})*\n` +
+              `🏢 *वर्टिकल:* ${vert} | 📅 *अवधि:* ${period}\n` +
+              `━━━━━━━━━━━━━━━━━━━━\n\n` +
+              `🏆 *शीर्ष 5 जिले (Top Performing Districts):*\n${fmtList(top5, 0)}\n\n` +
+              `⚖️ *मध्यम प्रदर्शन वाले जिले (Median Districts):*\n${fmtList(median5, midStart)}\n\n` +
+              `🚨 *न्यूनतम प्रदर्शन वाले 5 जिले (Low Performing / Immediate Focus):*\n${fmtList(bottom5, null)}\n\n` +
+              `📌 सभी जिला प्रबंधकों से अनुरोध है कि पिछड़ी सेवाओं में दैनिक लक्ष्य के अनुसार प्रगति सुनिश्चित करें।\n` +
+              `🔗 *पोर्टल लिंक:* ${window.location.origin + window.location.pathname}`;
+      } else {
+        msg = `*CSC CHHATTISGARH — DISTRICT RANKING REPORT (${metricLabel})*\n` +
+              `🏢 *Vertical:* ${vert} | 📅 *Period:* ${period}\n` +
+              `━━━━━━━━━━━━━━━━━━━━\n\n` +
+              `🏆 *TOP 5 PERFORMING DISTRICTS:*\n${fmtList(top5, 0)}\n\n` +
+              `⚖️ *MEDIAN PERFORMING DISTRICTS:*\n${fmtList(median5, midStart)}\n\n` +
+              `🚨 *LOW PERFORMING DISTRICTS (IMMEDIATE FOCUS):*\n${fmtList(bottom5, null)}\n\n` +
+              `📌 District Managers of lagging districts are advised to accelerate daily execution to bridge the shortfall.\n` +
+              `🔗 *Live Dashboard:* ${window.location.origin + window.location.pathname}`;
+      }
+
+      navigator.clipboard.writeText(msg).then(() => {
+        const btn = document.getElementById("stateWaBtn");
+        const old = btn.innerText;
+        btn.innerText = "✅ Ranking Copied!";
+        setTimeout(() => btn.innerText = old, 2400);
       });
     }
 
