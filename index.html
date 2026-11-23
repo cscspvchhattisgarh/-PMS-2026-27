@@ -13,7 +13,25 @@
     thead th { position: sticky; top: 0; z-index: 10; }
     thead tr:nth-child(2) th { top: 36px; }
 
-    /* Clean Print / PDF Styling */
+    @keyframes stripeMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 40px 0; }
+    }
+    .progress-striped {
+      background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.25) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0.25) 75%,
+        transparent 75%,
+        transparent
+      );
+      background-size: 40px 40px;
+      animation: stripeMove 0.8s linear infinite;
+    }
+
     @media print {
       @page { size: A4 landscape; margin: 10mm; }
       body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -43,10 +61,13 @@
 
       <div class="flex flex-wrap items-center justify-center gap-2 no-print">
         <span id="syncTime" class="text-[11px] bg-white/10 text-blue-100 px-3 py-1.5 rounded-lg border border-white/10">
-          Syncing...
+          Syncing 0%...
         </span>
-        <button onclick="copyWhatsAppSummary()" id="waBtn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition flex items-center gap-1.5">
-          <span>📋 Copy WhatsApp Summary</span>
+        <button onclick="forceRefreshData()" id="refreshBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow transition">
+          🔄 Force Sync
+        </button>
+        <button onclick="copyWhatsAppSummary()" id="waBtn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition">
+          📋 WhatsApp Summary
         </button>
         <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition">
           🖨️ Print / PDF
@@ -57,6 +78,19 @@
       </div>
     </div>
   </header>
+
+  <!-- Live Sync Progress Bar Banner (Visible during Sync) -->
+  <div id="syncBanner" class="bg-white border-b border-blue-200 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex justify-between items-center text-xs font-bold text-blue-950 mb-1.5">
+        <span id="syncStatusText">Connecting to Google Sheet Server...</span>
+        <span id="syncPercentText" class="text-sm font-extrabold text-blue-700">0%</span>
+      </div>
+      <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden p-0.5">
+        <div id="syncProgressBar" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-2 rounded-full progress-striped transition-all duration-200" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 py-6">
@@ -97,7 +131,7 @@
       </div>
     </div>
 
-    <!-- Active Selection Banner (Visible in Print too) -->
+    <!-- Active Selection Banner -->
     <div class="mb-4 flex flex-wrap justify-between items-center gap-2 bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs">
       <div>
         <span class="text-slate-400">Viewing Report:</span>
@@ -106,9 +140,8 @@
       <div class="text-slate-300">All figures are rounded-up whole numbers</div>
     </div>
 
-    <!-- Top KPI Cards (TXN, AMT, REV with Shortfall & Progress) -->
+    <!-- Top KPI Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <!-- TXN KPI -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-blue-600">
         <div class="flex justify-between items-center mb-2">
           <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Transactions (TXN)</span>
@@ -133,7 +166,6 @@
         </div>
       </div>
 
-      <!-- AMT KPI -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-indigo-600">
         <div class="flex justify-between items-center mb-2">
           <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Amount (AMT in ₹)</span>
@@ -158,7 +190,6 @@
         </div>
       </div>
 
-      <!-- REV KPI -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-600">
         <div class="flex justify-between items-center mb-2">
           <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Revenue (REV in ₹)</span>
@@ -186,7 +217,6 @@
 
     <!-- Interactive Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 no-print">
-      <!-- Chart 1: Vertical Comparison -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
         <div class="flex justify-between items-center mb-3">
           <h3 class="text-sm font-bold text-slate-800">Vertical-wise Target vs Achievement</h3>
@@ -201,7 +231,6 @@
         </div>
       </div>
 
-      <!-- Chart 2: Monthly Trend -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
         <div class="flex justify-between items-center mb-3">
           <h3 class="text-sm font-bold text-slate-800">Month-on-Month Performance Trend (Apr – Mar)</h3>
@@ -213,7 +242,7 @@
       </div>
     </div>
 
-    <!-- Navigation Tabs (Activity View vs District Leaderboard) -->
+    <!-- Navigation Tabs -->
     <div class="flex flex-wrap justify-between items-center gap-3 mb-4 no-print">
       <div class="inline-flex bg-slate-200 p-1 rounded-xl">
         <button onclick="switchTab('activity')" id="tabActivityBtn" class="px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition">
@@ -224,7 +253,6 @@
         </button>
       </div>
 
-      <!-- Quick Status Filters (Only for Activity Tab) -->
       <div id="statusPills" class="flex flex-wrap items-center gap-1.5">
         <button onclick="setStatusFilter('ALL')" id="pill-ALL" class="status-pill px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white">All</button>
         <button onclick="setStatusFilter('ACHIEVED')" id="pill-ACHIEVED" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Achieved (100%+)</button>
@@ -237,12 +265,13 @@
     <div id="activitySection">
       <div class="mb-3 flex flex-col sm:flex-row justify-between items-center gap-2 no-print">
         <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="🔍 Search Business Activity or Vertical..." class="w-full sm:w-80 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none">
-        <span id="rowCount" class="text-xs font-semibold text-slate-500">Loading records...</span>
+        <span id="rowCount" class="text-xs font-semibold text-slate-500">Waiting for sync...</span>
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div id="loader" class="p-12 text-center text-slate-500 font-semibold text-sm">
-          ⏳ Fetching live data from "New Compiled Data" Google Sheet...
+        <div id="loader" class="p-12 text-center text-slate-600 font-semibold text-sm">
+          <div class="text-2xl font-extrabold text-blue-700 mb-1" id="centerLoaderPct">0%</div>
+          <div id="centerLoaderMsg">Synchronizing data from Google Sheet...</div>
         </div>
         <div class="table-container hidden" id="tableWrapper">
           <table class="w-full text-xs text-left border-collapse" id="pmsTable">
@@ -282,7 +311,7 @@
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
           <div>
-            <h3 class="text-sm font-bold text-slate-800">District Performance Ranking (Sorted by TXN % Achievement)</h3>
+            <h3 class="text-sm font-bold text-slate-800">District Performance Ranking (33 Districts)</h3>
             <p class="text-xs text-slate-500">Kisi bhi District par click karke uska detailed Business Activity report dekhein</p>
           </div>
           <select id="rankSortBy" onchange="renderLeaderboard()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 font-bold bg-white">
@@ -318,13 +347,24 @@
 
   <script>
     // APNA DEPLOYED WEB APP URL YAHAN PASTE KAREIN
-    const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyg2DZmEefG91hl2Yhlrqh2AA1tuaQP0z8nFfBfYNXrkf8hWwibvs6OrGmybSnsO1o8ng/exec";
+    const LOCAL_CACHE_KEY = "CSC_CG_PMS_LOCAL_V2";
 
     let rawData = [];
     let currentFilteredRows = [];
     let activeStatusFilter = "ALL";
     let verticalChartInstance = null;
     let trendChartInstance = null;
+    let syncTimer = null;
+    let currentSyncPct = 0;
+
+    const periodIndexMap = {
+      "APRIL": 0, "MAY": 1, "JUNE": 2, "QUARTER 1": 3,
+      "JULY": 4, "AUGUST": 5, "SEPTEMBER": 6, "QUARTER 2": 7,
+      "OCTOBER": 8, "NOVEMBER": 9, "DECEMBER": 10, "QUARTER 3": 11,
+      "JANUARY": 12, "FEBRUARY": 13, "MARCH": 14, "QUARTER 4": 15,
+      "YEARLY": 16
+    };
 
     const monthsList = ["APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY", "MARCH"];
     const periodOptionsMap = {
@@ -334,45 +374,159 @@
       "ANNUALLY": ["YEARLY"]
     };
 
+    function updateSyncProgress(pct, msg) {
+      currentSyncPct = Math.min(100, Math.max(0, Math.round(pct)));
+      document.getElementById("syncProgressBar").style.width = currentSyncPct + "%";
+      document.getElementById("syncPercentText").innerText = currentSyncPct + "%";
+      document.getElementById("syncStatusText").innerText = msg;
+      document.getElementById("syncTime").innerText = `Syncing ${currentSyncPct}%...`;
+
+      const centerPct = document.getElementById("centerLoaderPct");
+      const centerMsg = document.getElementById("centerLoaderMsg");
+      if (centerPct) centerPct.innerText = currentSyncPct + "%";
+      if (centerMsg) centerMsg.innerText = msg;
+    }
+
+    function startMovingProgress() {
+      currentSyncPct = 5;
+      document.getElementById("syncBanner").classList.remove("hidden");
+      updateSyncProgress(5, "Connecting to Google Sheet Server...");
+      clearInterval(syncTimer);
+
+      syncTimer = setInterval(() => {
+        if (currentSyncPct < 45) {
+          updateSyncProgress(currentSyncPct + 4, "Reading 'New Compiled Data' records...");
+        } else if (currentSyncPct < 78) {
+          updateSyncProgress(currentSyncPct + 2, "Downloading & compressing district metrics...");
+        } else if (currentSyncPct < 92) {
+          updateSyncProgress(currentSyncPct + 0.5, "Finalizing calculations...");
+        }
+      }, 150);
+    }
+
+    function finishMovingProgress(timestamp) {
+      clearInterval(syncTimer);
+      updateSyncProgress(100, "Synchronization Complete!");
+      const d = timestamp ? new Date(timestamp) : new Date();
+      document.getElementById("syncTime").innerText = "Synced: " + d.toLocaleDateString('en-IN') + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      setTimeout(() => {
+        document.getElementById("syncBanner").classList.add("hidden");
+      }, 900);
+    }
+
+    // Unpack compact server array into structured records
+    function unpackPayload(json) {
+      const { districts, verticals, activities, rows } = json;
+      const result = new Array(rows.length);
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const metrics = {};
+        for (const [pName, pIdx] of Object.entries(periodIndexMap)) {
+          const base = 3 + (pIdx * 6);
+          metrics[pName] = {
+            t_txn: r[base], t_amt: r[base + 1], t_rev: r[base + 2],
+            a_txn: r[base + 3], a_amt: r[base + 4], a_rev: r[base + 5]
+          };
+        }
+        // Half-Yearly 1 (Q1 + Q2)
+        const q1 = metrics["QUARTER 1"], q2 = metrics["QUARTER 2"];
+        metrics["HALF YEARLY 1 (APR-SEP)"] = {
+          t_txn: q1.t_txn + q2.t_txn, t_amt: q1.t_amt + q2.t_amt, t_rev: q1.t_rev + q2.t_rev,
+          a_txn: q1.a_txn + q2.a_txn, a_amt: q1.a_amt + q2.a_amt, a_rev: q1.a_rev + q2.a_rev
+        };
+        // Half-Yearly 2 (Q3 + Q4)
+        const q3 = metrics["QUARTER 3"], q4 = metrics["QUARTER 4"];
+        metrics["HALF YEARLY 2 (OCT-MAR)"] = {
+          t_txn: q3.t_txn + q4.t_txn, t_amt: q3.t_amt + q4.t_amt, t_rev: q3.t_rev + q4.t_rev,
+          a_txn: q3.a_txn + q4.a_txn, a_amt: q3.a_amt + q4.a_amt, a_rev: q3.a_rev + q4.a_rev
+        };
+
+        result[i] = {
+          district: districts[r[0]],
+          vertical: verticals[r[1]],
+          activity: activities[r[2]],
+          metrics: metrics
+        };
+      }
+      return result;
+    }
+
     window.onload = async () => {
       updatePeriodOptions(false);
-      try {
-        const res = await fetch(API_URL);
-        const json = await res.json();
-        if (json.status === "success") {
-          rawData = json.data;
+
+      // Step 1: Instant load from Browser Cache if available
+      const cachedRaw = localStorage.getItem(LOCAL_CACHE_KEY);
+      if (cachedRaw) {
+        try {
+          const parsed = JSON.parse(cachedRaw);
+          rawData = unpackPayload(parsed);
           populateDropdowns();
           document.getElementById("loader").classList.add("hidden");
           document.getElementById("tableWrapper").classList.remove("hidden");
-          const now = new Date();
-          document.getElementById("syncTime").innerText = "Synced: " + now.toLocaleDateString('en-IN') + " " + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
           renderAll();
-        } else {
-          document.getElementById("loader").innerText = "Error: " + json.message;
-        }
-      } catch (e) {
-        document.getElementById("loader").innerText = "Failed to connect to Google Sheet. Please check Web App URL.";
+        } catch (e) {}
       }
+
+      // Step 2: Live Sync with Moving Percentage Bar
+      await fetchLiveData(false);
     };
 
+    async function forceRefreshData() {
+      const btn = document.getElementById("refreshBtn");
+      btn.disabled = true;
+      btn.innerText = "⏳ Syncing...";
+      await fetchLiveData(true);
+      btn.disabled = false;
+      btn.innerText = "🔄 Force Sync";
+    }
+
+    async function fetchLiveData(force) {
+      startMovingProgress();
+      try {
+        const url = force ? `${API_URL}?refresh=1` : API_URL;
+        const res = await fetch(url);
+        updateSyncProgress(88, "Processing district & vertical data...");
+        const json = await res.json();
+
+        if (json.status === "success") {
+          localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(json));
+          rawData = unpackPayload(json);
+          populateDropdowns();
+          document.getElementById("loader").classList.add("hidden");
+          document.getElementById("tableWrapper").classList.remove("hidden");
+          renderAll();
+          finishMovingProgress(json.ts);
+        } else {
+          clearInterval(syncTimer);
+          document.getElementById("syncStatusText").innerText = "Error: " + json.message;
+        }
+      } catch (e) {
+        clearInterval(syncTimer);
+        document.getElementById("syncStatusText").innerText = "Connection failed. Check Web App URL.";
+      }
+    }
+
     function populateDropdowns() {
-      const districts = [...new Set(rawData.map(r => r.district))].sort();
       const distSelect = document.getElementById("districtFilter");
-      districts.forEach(d => {
+      const prevDist = distSelect.value;
+      distSelect.innerHTML = `<option value="ALL">ALL DISTRICTS (STATE TOTAL)</option>`;
+      [...new Set(rawData.map(r => r.district))].sort().forEach(d => {
         const opt = document.createElement("option");
-        opt.value = d;
-        opt.textContent = d;
+        opt.value = d; opt.textContent = d;
         distSelect.appendChild(opt);
       });
+      if ([...distSelect.options].some(o => o.value === prevDist)) distSelect.value = prevDist;
 
-      const verticals = [...new Set(rawData.map(r => r.vertical))].sort();
       const vertSelect = document.getElementById("verticalFilter");
-      verticals.forEach(v => {
+      const prevVert = vertSelect.value;
+      vertSelect.innerHTML = `<option value="ALL">ALL VERTICALS</option>`;
+      [...new Set(rawData.map(r => r.vertical))].sort().forEach(v => {
         const opt = document.createElement("option");
-        opt.value = v;
-        opt.textContent = v;
+        opt.value = v; opt.textContent = v;
         vertSelect.appendChild(opt);
       });
+      if ([...vertSelect.options].some(o => o.value === prevVert)) vertSelect.value = prevVert;
     }
 
     function updatePeriodOptions(shouldRender = true) {
@@ -381,26 +535,18 @@
       periodSelect.innerHTML = "";
       periodOptionsMap[cat].forEach(p => {
         const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
+        opt.value = p; opt.textContent = p;
         periodSelect.appendChild(opt);
       });
       if (shouldRender) renderAll();
     }
 
-    function ceilNum(n) {
-      return Math.ceil(Number(n || 0));
-    }
-
-    function formatNum(n) {
-      return ceilNum(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-    }
-
+    function ceilNum(n) { return Math.ceil(Number(n || 0)); }
+    function formatNum(n) { return ceilNum(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
     function calcPctNum(ach, tgt) {
       if (!tgt || tgt === 0) return ach > 0 ? 100 : 0;
       return Math.ceil((ach / tgt) * 100);
     }
-
     function calcShortfall(tgt, ach) {
       const diff = ceilNum(tgt) - ceilNum(ach);
       return diff > 0 ? diff : 0;
@@ -427,15 +573,11 @@
       const pills = document.getElementById("statusPills");
 
       if (tab === "activity") {
-        actSec.classList.remove("hidden");
-        leadSec.classList.add("hidden");
-        pills.classList.remove("hidden");
+        actSec.classList.remove("hidden"); leadSec.classList.add("hidden"); pills.classList.remove("hidden");
         actBtn.className = "px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition";
         leadBtn.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
       } else {
-        actSec.classList.add("hidden");
-        leadSec.classList.remove("hidden");
-        pills.classList.add("hidden");
+        actSec.classList.add("hidden"); leadSec.classList.remove("hidden"); pills.classList.add("hidden");
         leadBtn.className = "px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition";
         actBtn.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
         renderLeaderboard();
@@ -444,9 +586,7 @@
 
     function setStatusFilter(status) {
       activeStatusFilter = status;
-      document.querySelectorAll(".status-pill").forEach(btn => {
-        btn.classList.remove("ring-2", "ring-offset-1", "ring-slate-900");
-      });
+      document.querySelectorAll(".status-pill").forEach(btn => btn.classList.remove("ring-2", "ring-offset-1", "ring-slate-900"));
       document.getElementById("pill-" + status).classList.add("ring-2", "ring-offset-1", "ring-slate-900");
       renderTable();
     }
@@ -456,7 +596,6 @@
       const vert = document.getElementById("verticalFilter").value;
       const period = document.getElementById("periodSelect").value;
       document.getElementById("bannerTitle").innerText = `${dist} | ${vert} | ${period}`;
-
       renderTable();
       renderCharts();
       renderLeaderboard();
@@ -480,34 +619,24 @@
         const m = item.metrics[selectedPeriod];
         if (!aggregatedMap.has(key)) {
           aggregatedMap.set(key, {
-            vertical: item.vertical,
-            activity: item.activity,
-            t_txn: 0, t_amt: 0, t_rev: 0,
-            a_txn: 0, a_amt: 0, a_rev: 0
+            vertical: item.vertical, activity: item.activity,
+            t_txn: 0, t_amt: 0, t_rev: 0, a_txn: 0, a_amt: 0, a_rev: 0
           });
         }
         const entry = aggregatedMap.get(key);
-        entry.t_txn += ceilNum(m.t_txn);
-        entry.t_amt += ceilNum(m.t_amt);
-        entry.t_rev += ceilNum(m.t_rev);
-        entry.a_txn += ceilNum(m.a_txn);
-        entry.a_amt += ceilNum(m.a_amt);
-        entry.a_rev += ceilNum(m.a_rev);
+        entry.t_txn += ceilNum(m.t_txn); entry.t_amt += ceilNum(m.t_amt); entry.t_rev += ceilNum(m.t_rev);
+        entry.a_txn += ceilNum(m.a_txn); entry.a_amt += ceilNum(m.a_amt); entry.a_rev += ceilNum(m.a_rev);
       });
 
       let rows = Array.from(aggregatedMap.values());
 
-      // KPI Totals calculate karein (Search aur Status filter se pehle)
-      let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0;
-      let totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
+      let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0, totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
       rows.forEach(r => {
         totT_Txn += r.t_txn; totT_Amt += r.t_amt; totT_Rev += r.t_rev;
         totA_Txn += r.a_txn; totA_Amt += r.a_amt; totA_Rev += r.a_rev;
       });
-
       updateKPICards(totT_Txn, totA_Txn, totT_Amt, totA_Amt, totT_Rev, totA_Rev);
 
-      // Apply Search & Status Quick Filter
       rows = rows.filter(r => {
         const matchSearch = r.activity.toLowerCase().includes(searchQuery) || r.vertical.toLowerCase().includes(searchQuery);
         if (!matchSearch) return false;
@@ -566,9 +695,7 @@
     }
 
     function updateKPICards(tTxn, aTxn, tAmt, aAmt, tRev, aRev) {
-      const pTxn = calcPctNum(aTxn, tTxn);
-      const pAmt = calcPctNum(aAmt, tAmt);
-      const pRev = calcPctNum(aRev, tRev);
+      const pTxn = calcPctNum(aTxn, tTxn), pAmt = calcPctNum(aAmt, tAmt), pRev = calcPctNum(aRev, tRev);
 
       document.getElementById("kpiTxnTgt").innerText = formatNum(tTxn);
       document.getElementById("kpiTxnAch").innerText = formatNum(aTxn);
@@ -593,17 +720,15 @@
       const selectedDist = document.getElementById("districtFilter").value;
       const selectedVert = document.getElementById("verticalFilter").value;
       const selectedPeriod = document.getElementById("periodSelect").value;
-      const metric = document.getElementById("chartMetric").value; // txn, amt, rev
+      const metric = document.getElementById("chartMetric").value;
 
-      // 1. Vertical Bar Chart Data
       const distFiltered = rawData.filter(r => (selectedDist === "ALL") || (r.district === selectedDist));
       const vertMap = new Map();
       distFiltered.forEach(r => {
         const m = r.metrics[selectedPeriod];
         if (!vertMap.has(r.vertical)) vertMap.set(r.vertical, { t: 0, a: 0 });
         const v = vertMap.get(r.vertical);
-        v.t += ceilNum(m["t_" + metric]);
-        v.a += ceilNum(m["a_" + metric]);
+        v.t += ceilNum(m["t_" + metric]); v.a += ceilNum(m["a_" + metric]);
       });
 
       const vLabels = Array.from(vertMap.keys());
@@ -623,7 +748,6 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
       });
 
-      // 2. Monthly Trend Chart Data
       const bothFiltered = rawData.filter(r => {
         const dMatch = (selectedDist === "ALL") || (r.district === selectedDist);
         const vMatch = (selectedVert === "ALL") || (r.vertical === selectedVert);
@@ -723,8 +847,8 @@
 
       navigator.clipboard.writeText(msg).then(() => {
         const btn = document.getElementById("waBtn");
-        btn.innerHTML = "✅ Copied for WhatsApp!";
-        setTimeout(() => btn.innerHTML = "📋 Copy WhatsApp Summary", 2500);
+        btn.innerHTML = "✅ Copied!";
+        setTimeout(() => btn.innerHTML = "📋 WhatsApp Summary", 2500);
       });
     }
 
