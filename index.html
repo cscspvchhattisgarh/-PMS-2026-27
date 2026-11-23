@@ -149,6 +149,9 @@
           <button onclick="copyDistrictLink()" id="linkBtn" class="bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow transition">
             🔗 District Link
           </button>
+          <button onclick="openAdvisoryModal()" class="bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow transition">
+            📝 Advisory Letter
+          </button>
           <button onclick="copyWhatsAppSummary()" id="waBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow transition">
             📋 District WA Msg
           </button>
@@ -226,13 +229,16 @@
         </div>
       </div>
 
-      <!-- Top KPI Cards (Stacked + Daily Required Run-Rate) -->
+      <!-- Top KPI Cards (Stacked + Daily Required Run-Rate + MoM Momentum) -->
       <div id="kpiGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
         <!-- TXN Card -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-blue-600 flex flex-col justify-between">
           <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
             <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Transactions (TXN)</span>
-            <span id="kpiTxnPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
+            <div class="flex items-center gap-1.5">
+              <span id="kpiTxnMom" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">MoM: --</span>
+              <span id="kpiTxnPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
+            </div>
           </div>
           <div class="space-y-1 text-sm num-font">
             <div class="flex justify-between items-center">
@@ -261,7 +267,10 @@
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-indigo-600 flex flex-col justify-between">
           <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
             <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Amount (AMT in ₹)</span>
-            <span id="kpiAmtPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
+            <div class="flex items-center gap-1.5">
+              <span id="kpiAmtMom" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">MoM: --</span>
+              <span id="kpiAmtPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
+            </div>
           </div>
           <div class="space-y-1 text-sm num-font">
             <div class="flex justify-between items-center">
@@ -290,7 +299,10 @@
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-600 flex flex-col justify-between">
           <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
             <span class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Revenue (REV in ₹)</span>
-            <span id="kpiRevPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
+            <div class="flex items-center gap-1.5">
+              <span id="kpiRevMom" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">MoM: --</span>
+              <span id="kpiRevPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
+            </div>
           </div>
           <div class="space-y-1 text-sm num-font">
             <div class="flex justify-between items-center">
@@ -373,7 +385,10 @@
     <!-- TAB 1: BUSINESS ACTIVITY TABLE -->
     <div id="activitySection">
       <div class="mb-3 flex flex-col sm:flex-row justify-between items-center gap-2 no-print">
-        <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="🔍 Search Business Activity or Vertical..." class="w-full sm:w-80 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="🔍 Search Business Activity or Vertical..." class="w-full sm:w-80 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none">
+          <span class="text-[11px] text-blue-700 font-semibold hidden md:inline">💡 Tip: Kisi bhi Service par click karke sabhi 33 Districts ki ranking dekhein</span>
+        </div>
         <span id="rowCount" class="text-xs font-semibold text-slate-500">Waiting for sync...</span>
       </div>
 
@@ -388,11 +403,12 @@
               <tr class="bg-slate-900 text-white">
                 <th rowspan="2" class="px-3 py-2.5 border border-slate-700">S.No</th>
                 <th rowspan="2" class="px-3 py-2.5 border border-slate-700">Vertical</th>
-                <th rowspan="2" class="px-3 py-2.5 border border-slate-700 min-w-[190px]">Business Activity</th>
+                <th rowspan="2" class="px-3 py-2.5 border border-slate-700 min-w-[200px]">Business Activity (Click for 33-Dist Rank)</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-blue-900">TARGET</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-emerald-900">ACHIEVEMENT</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-rose-950">BALANCE / SHORTFALL</th>
                 <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-amber-900">% ACHIEVED</th>
+                <th rowspan="2" class="px-2 py-2.5 border border-slate-700 text-center bg-slate-800">MoM TXN</th>
               </tr>
               <tr class="bg-slate-800 text-slate-200 text-[11px]">
                 <th class="px-2 py-1.5 border border-slate-700 text-right">TXN</th>
@@ -421,7 +437,7 @@
         <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
           <div>
             <h3 class="text-sm font-bold text-slate-800">District Performance Ranking (33 Districts)</h3>
-            <p class="text-xs text-slate-500 no-print">Kisi bhi District par click karke uska detailed Business Activity report dekhein</p>
+            <p class="text-xs text-slate-500 no-print">District ke naam par click karke detailed report dekhein, ya "📲 DM Msg" / "📝 Memo" se direct action lein</p>
           </div>
           <div class="flex items-center gap-2 no-print">
             <select id="rankSortBy" onchange="renderLeaderboard()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 font-bold bg-white">
@@ -440,12 +456,14 @@
                 <th class="px-3 py-2.5 border border-slate-700 text-right">Target TXN</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">Achieved TXN</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">TXN %</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">MoM</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">Target AMT</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">Achieved AMT</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">AMT %</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">Target REV</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">Achieved REV</th>
                 <th class="px-3 py-2.5 border border-slate-700 text-right">REV %</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-center no-print">DM Action</th>
               </tr>
             </thead>
             <tbody id="leaderboardBody" class="divide-y divide-slate-200"></tbody>
@@ -462,6 +480,80 @@
 
   </main>
 
+  <!-- MODAL 1: SERVICE-WISE 33-DISTRICT DRILL-DOWN MODAL -->
+  <div id="serviceModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[88vh] flex flex-col overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+        <div>
+          <span id="svcModalVertical" class="text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-slate-950 px-2 py-0.5 rounded">VERTICAL</span>
+          <h3 id="svcModalTitle" class="text-base md:text-lg font-extrabold mt-1">Service Name — 33 Districts Ranking</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="copyServiceRankWA()" id="svcWaBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+            📋 Copy Service Ranking WA
+          </button>
+          <button onclick="closeModal('serviceModal')" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-lg font-bold">✕</button>
+        </div>
+      </div>
+      <div class="p-4 overflow-auto flex-1">
+        <table class="w-full text-xs text-left border-collapse num-font">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 border-b border-slate-300">
+              <th class="px-3 py-2 text-center">Rank</th>
+              <th class="px-3 py-2">District</th>
+              <th class="px-3 py-2 text-right">Target TXN</th>
+              <th class="px-3 py-2 text-right">Achieved TXN</th>
+              <th class="px-3 py-2 text-right">Shortfall</th>
+              <th class="px-3 py-2 text-right">TXN %</th>
+              <th class="px-3 py-2 text-right">Achieved REV</th>
+              <th class="px-3 py-2 text-right">REV %</th>
+            </tr>
+          </thead>
+          <tbody id="svcModalBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: FORMAL ADVISORY / SHOW-CAUSE MEMO GENERATOR -->
+  <div id="advisoryModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="bg-rose-950 text-white px-5 py-4 flex justify-between items-center">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded">Official Communication</span>
+          <h3 class="text-base md:text-lg font-extrabold mt-1">Performance Review Advisory / Show-Cause Memo</h3>
+        </div>
+        <button onclick="closeModal('advisoryModal')" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-lg font-bold">✕</button>
+      </div>
+      <div class="p-5 overflow-auto flex-1 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Select Target District</label>
+            <select id="advDistrictSelect" onchange="generateAdvisoryText()" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-800"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Letter Language</label>
+            <select id="advLangSelect" onchange="generateAdvisoryText()" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-800">
+              <option value="HI">Hindi (हिंदी शासकीय प्रारूप)</option>
+              <option value="EN">English (Official Memo Format)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Editable Official Letter / WhatsApp Advisory Draft</label>
+          <textarea id="advisoryTextArea" rows="13" class="w-full border border-slate-300 rounded-xl p-3.5 text-xs font-medium text-slate-800 leading-relaxed focus:ring-2 focus:ring-rose-600 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <button onclick="copyAdvisoryText()" id="copyAdvBtn" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+            📋 Copy Official Memo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // APNA DEPLOYED WEB APP URL YAHAN PASTE KAREIN
     const API_URL = "https://script.google.com/macros/s/AKfycbyg2DZmEefG91hl2Yhlrqh2AA1tuaQP0z8nFfBfYNXrkf8hWwibvs6OrGmybSnsO1o8ng/exec";
@@ -470,6 +562,7 @@
     let rawData = [];
     let currentFilteredRows = [];
     let latestRankList = [];
+    let activeServiceDrillData = { vertical: "", activity: "", rows: [] };
     let activeStatusFilter = "ALL";
     let activeTab = "activity";
     let currentLang = "EN";
@@ -494,6 +587,33 @@
       "ANNUALLY": ["YEARLY"]
     };
 
+    // Determine Current & Previous Month Pair for MoM Momentum
+    function getMomMonthPair(selectedPeriod) {
+      const mIdx = monthsList.indexOf(selectedPeriod);
+      if (mIdx > 0) return { curr: monthsList[mIdx], prev: monthsList[mIdx - 1] };
+      if (mIdx === 0) return { curr: "APRIL", prev: null };
+
+      // For Quarterly / Half-Yearly / Yearly, compare Current Active Month vs Previous Month
+      const now = new Date();
+      const calMonth = now.getMonth(); // 0=Jan ... 10=Nov
+      const fyIdx = calMonth >= 3 ? calMonth - 3 : calMonth + 9; // Apr=0 ... Nov=7
+      return {
+        curr: monthsList[fyIdx],
+        prev: fyIdx > 0 ? monthsList[fyIdx - 1] : null
+      };
+    }
+
+    function calcMomGrowth(currVal, prevVal) {
+      if (!prevVal || prevVal === 0) return currVal > 0 ? 100 : 0;
+      return Math.round(((currVal - prevVal) / prevVal) * 100);
+    }
+
+    function renderMomBadge(pct, prefix = "") {
+      if (pct > 0) return `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">${prefix}▲ +${pct}%</span>`;
+      if (pct < 0) return `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">${prefix}▼ ${pct}%</span>`;
+      return `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${prefix}0%</span>`;
+    }
+
     // Language Switcher (EN / HI)
     function setLang(lang) {
       currentLang = lang;
@@ -512,7 +632,6 @@
       }
     }
 
-    // Remaining Days Calculator for Daily Run-Rate (FY 2026-27: Apr 1, 2026 - Mar 31, 2027)
     function getRemainingDays(period) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -545,7 +664,6 @@
       return diffDays > 0 ? diffDays : 0;
     }
 
-    // Direct URL Deep-Linking (?district=RAIPUR)
     function applyUrlDeepLink() {
       const params = new URLSearchParams(window.location.search);
       const distParam = params.get("district");
@@ -576,6 +694,10 @@
         btn.innerText = "✅ Link Copied!";
         setTimeout(() => btn.innerText = "🔗 District Link", 2200);
       });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
     }
 
     // 3-Page Auto-Adjustable Print Controller
@@ -737,12 +859,21 @@
 
     function populateDropdowns() {
       const distSelect = document.getElementById("districtFilter");
+      const advDistSelect = document.getElementById("advDistrictSelect");
       const prevDist = distSelect.value;
+
       distSelect.innerHTML = `<option value="ALL">ALL DISTRICTS (STATE TOTAL)</option>`;
-      [...new Set(rawData.map(r => r.district))].sort().forEach(d => {
+      advDistSelect.innerHTML = "";
+
+      const distList = [...new Set(rawData.map(r => r.district))].sort();
+      distList.forEach(d => {
         const opt = document.createElement("option");
         opt.value = d; opt.textContent = d;
         distSelect.appendChild(opt);
+
+        const opt2 = document.createElement("option");
+        opt2.value = d; opt2.textContent = d;
+        advDistSelect.appendChild(opt2);
       });
       if ([...distSelect.options].some(o => o.value === prevDist)) distSelect.value = prevDist;
 
@@ -841,6 +972,7 @@
       const selectedVert = document.getElementById("verticalFilter").value;
       const selectedPeriod = document.getElementById("periodSelect").value;
       const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+      const momPair = getMomMonthPair(selectedPeriod);
 
       const filtered = rawData.filter(r => {
         const matchDist = (selectedDist === "ALL") || (r.district === selectedDist);
@@ -852,29 +984,51 @@
       filtered.forEach(item => {
         const key = item.vertical + "||" + item.activity;
         const m = item.metrics[selectedPeriod];
+        const mCurr = item.metrics[momPair.curr];
+        const mPrev = momPair.prev ? item.metrics[momPair.prev] : null;
+
         if (!aggregatedMap.has(key)) {
           aggregatedMap.set(key, {
             vertical: item.vertical, activity: item.activity,
-            t_txn: 0, t_amt: 0, t_rev: 0, a_txn: 0, a_amt: 0, a_rev: 0
+            t_txn: 0, t_amt: 0, t_rev: 0, a_txn: 0, a_amt: 0, a_rev: 0,
+            momCurrTxn: 0, momPrevTxn: 0, momCurrAmt: 0, momPrevAmt: 0, momCurrRev: 0, momPrevRev: 0
           });
         }
         const entry = aggregatedMap.get(key);
         entry.t_txn += ceilNum(m.t_txn); entry.t_amt += ceilNum(m.t_amt); entry.t_rev += ceilNum(m.t_rev);
         entry.a_txn += ceilNum(m.a_txn); entry.a_amt += ceilNum(m.a_amt); entry.a_rev += ceilNum(m.a_rev);
+
+        entry.momCurrTxn += ceilNum(mCurr.a_txn);
+        entry.momPrevTxn += mPrev ? ceilNum(mPrev.a_txn) : 0;
+        entry.momCurrAmt += ceilNum(mCurr.a_amt);
+        entry.momPrevAmt += mPrev ? ceilNum(mPrev.a_amt) : 0;
+        entry.momCurrRev += ceilNum(mCurr.a_rev);
+        entry.momPrevRev += mPrev ? ceilNum(mPrev.a_rev) : 0;
       });
 
       let allRows = Array.from(aggregatedMap.values());
 
-      // Zero Achievement Alert Count (Target > 0 but Achievement == 0)
       const zeroCount = allRows.filter(r => (r.t_txn > 0 || r.t_rev > 0) && r.a_txn === 0 && r.a_rev === 0).length;
       document.getElementById("zeroCountBadge").innerText = zeroCount;
 
       let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0, totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
+      let totMC_Txn = 0, totMP_Txn = 0, totMC_Amt = 0, totMP_Amt = 0, totMC_Rev = 0, totMP_Rev = 0;
+
       allRows.forEach(r => {
         totT_Txn += r.t_txn; totT_Amt += r.t_amt; totT_Rev += r.t_rev;
         totA_Txn += r.a_txn; totA_Amt += r.a_amt; totA_Rev += r.a_rev;
+        totMC_Txn += r.momCurrTxn; totMP_Txn += r.momPrevTxn;
+        totMC_Amt += r.momCurrAmt; totMP_Amt += r.momPrevAmt;
+        totMC_Rev += r.momCurrRev; totMP_Rev += r.momPrevRev;
       });
-      updateKPICards(totT_Txn, totA_Txn, totT_Amt, totA_Amt, totT_Rev, totA_Rev);
+
+      updateKPICards(
+        totT_Txn, totA_Txn, totT_Amt, totA_Amt, totT_Rev, totA_Rev,
+        calcMomGrowth(totMC_Txn, totMP_Txn),
+        calcMomGrowth(totMC_Amt, totMP_Amt),
+        calcMomGrowth(totMC_Rev, totMP_Rev),
+        momPair
+      );
 
       let rows = allRows.filter(r => {
         const matchSearch = r.activity.toLowerCase().includes(searchQuery) || r.vertical.toLowerCase().includes(searchQuery);
@@ -899,6 +1053,7 @@
         const gapTxn = calcShortfall(row.t_txn, row.a_txn);
         const gapAmt = calcShortfall(row.t_amt, row.a_amt);
         const gapRev = calcShortfall(row.t_rev, row.a_rev);
+        const momPct = calcMomGrowth(row.momCurrTxn, row.momPrevTxn);
         const isZero = (row.t_txn > 0 || row.t_rev > 0) && row.a_txn === 0 && row.a_rev === 0;
 
         const tr = document.createElement("tr");
@@ -906,7 +1061,7 @@
         tr.innerHTML = `
           <td class="px-3 py-2 border border-slate-200 text-slate-500 font-medium">${idx + 1}</td>
           <td class="px-3 py-2 border border-slate-200 font-bold text-indigo-900">${row.vertical}</td>
-          <td class="px-3 py-2 border border-slate-200 font-semibold text-slate-900">
+          <td onclick="openServiceDrillDown('${row.vertical.replace(/'/g, "\\'")}', '${row.activity.replace(/'/g, "\\'")}')" class="px-3 py-2 border border-slate-200 font-semibold text-blue-900 underline decoration-blue-300 cursor-pointer hover:text-blue-700">
             ${row.activity}
             ${isZero ? '<span class="ml-1.5 text-[9px] font-extrabold bg-red-600 text-white px-1.5 py-0.5 rounded uppercase no-print">Zero Ach</span>' : ''}
           </td>
@@ -931,6 +1086,7 @@
             <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctRev)}">${pctRev}%</span>
             <div class="w-full bg-slate-200 h-1 rounded-full mt-1 no-print"><div class="${getBarColor(pctRev)} h-1 rounded-full" style="width:${Math.min(pctRev, 100)}%"></div></div>
           </td>
+          <td class="px-2 py-2 border border-slate-200 text-center">${renderMomBadge(momPct)}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -938,9 +1094,10 @@
       document.getElementById("rowCount").innerText = `Showing ${rows.length} Business Activities`;
     }
 
-    function updateKPICards(tTxn, aTxn, tAmt, aAmt, tRev, aRev) {
+    function updateKPICards(tTxn, aTxn, tAmt, aAmt, tRev, aRev, momTxn, momAmt, momRev, momPair) {
       const period = document.getElementById("periodSelect").value;
       const remDays = getRemainingDays(period);
+      const momLabel = momPair.prev ? `${momPair.curr.slice(0,3)} vs ${momPair.prev.slice(0,3)}: ` : "MoM: ";
 
       const pTxn = calcPctNum(aTxn, tTxn), pAmt = calcPctNum(aAmt, tAmt), pRev = calcPctNum(aRev, tRev);
       const gapTxn = calcShortfall(tTxn, aTxn), gapAmt = calcShortfall(tAmt, aAmt), gapRev = calcShortfall(tRev, aRev);
@@ -954,6 +1111,7 @@
       document.getElementById("kpiTxnGap").innerText = formatNum(gapTxn);
       document.getElementById("kpiTxnRate").innerText = gapTxn > 0 ? `${formatNum(rateTxn)} / day` : "Target Achieved 🎉";
       document.getElementById("kpiTxnPct").innerText = pTxn + "%";
+      document.getElementById("kpiTxnMom").outerHTML = `<span id="kpiTxnMom">${renderMomBadge(momTxn, momLabel)}</span>`;
       document.getElementById("kpiTxnBar").style.width = Math.min(pTxn, 100) + "%";
 
       document.getElementById("kpiAmtTgt").innerText = "₹ " + formatNum(tAmt);
@@ -961,6 +1119,7 @@
       document.getElementById("kpiAmtGap").innerText = "₹ " + formatNum(gapAmt);
       document.getElementById("kpiAmtRate").innerText = gapAmt > 0 ? `₹ ${formatNum(rateAmt)} / day` : "Target Achieved 🎉";
       document.getElementById("kpiAmtPct").innerText = pAmt + "%";
+      document.getElementById("kpiAmtMom").outerHTML = `<span id="kpiAmtMom">${renderMomBadge(momAmt, momLabel)}</span>`;
       document.getElementById("kpiAmtBar").style.width = Math.min(pAmt, 100) + "%";
 
       document.getElementById("kpiRevTgt").innerText = "₹ " + formatNum(tRev);
@@ -968,6 +1127,7 @@
       document.getElementById("kpiRevGap").innerText = "₹ " + formatNum(gapRev);
       document.getElementById("kpiRevRate").innerText = gapRev > 0 ? `₹ ${formatNum(rateRev)} / day` : "Target Achieved 🎉";
       document.getElementById("kpiRevPct").innerText = pRev + "%";
+      document.getElementById("kpiRevMom").outerHTML = `<span id="kpiRevMom">${renderMomBadge(momRev, momLabel)}</span>`;
       document.getElementById("kpiRevBar").style.width = Math.min(pRev, 100) + "%";
     }
 
@@ -1030,25 +1190,32 @@
       const selectedVert = document.getElementById("verticalFilter").value;
       const selectedPeriod = document.getElementById("periodSelect").value;
       const sortBy = document.getElementById("rankSortBy").value;
+      const momPair = getMomMonthPair(selectedPeriod);
 
       const distMap = new Map();
       rawData.forEach(r => {
         if (selectedVert !== "ALL" && r.vertical !== selectedVert) return;
         const m = r.metrics[selectedPeriod];
+        const mCurr = r.metrics[momPair.curr];
+        const mPrev = momPair.prev ? r.metrics[momPair.prev] : null;
+
         if (!distMap.has(r.district)) {
-          distMap.set(r.district, { district: r.district, t_txn: 0, a_txn: 0, t_amt: 0, a_amt: 0, t_rev: 0, a_rev: 0 });
+          distMap.set(r.district, { district: r.district, t_txn: 0, a_txn: 0, t_amt: 0, a_amt: 0, t_rev: 0, a_rev: 0, momC: 0, momP: 0 });
         }
         const d = distMap.get(r.district);
         d.t_txn += ceilNum(m.t_txn); d.a_txn += ceilNum(m.a_txn);
         d.t_amt += ceilNum(m.t_amt); d.a_amt += ceilNum(m.a_amt);
         d.t_rev += ceilNum(m.t_rev); d.a_rev += ceilNum(m.a_rev);
+        d.momC += ceilNum(mCurr.a_txn);
+        d.momP += mPrev ? ceilNum(mPrev.a_txn) : 0;
       });
 
       const rankList = Array.from(distMap.values()).map(d => ({
         ...d,
         txnPct: calcPctNum(d.a_txn, d.t_txn),
         amtPct: calcPctNum(d.a_amt, d.t_amt),
-        revPct: calcPctNum(d.a_rev, d.t_rev)
+        revPct: calcPctNum(d.a_rev, d.t_rev),
+        momPct: calcMomGrowth(d.momC, d.momP)
       }));
 
       rankList.sort((a, b) => b[sortBy] - a[sortBy]);
@@ -1059,32 +1226,261 @@
 
       rankList.forEach((d, idx) => {
         const medal = idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : (idx + 1);
+        const safeDist = d.district.replace(/'/g, "\\'");
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-blue-50 cursor-pointer transition";
-        tr.onclick = () => {
-          document.getElementById("districtFilter").value = d.district;
-          onDistrictChange();
-          switchTab("activity");
-        };
+        tr.className = "hover:bg-blue-50 transition";
         tr.innerHTML = `
           <td class="px-3 py-2 border border-slate-200 text-center font-extrabold text-slate-800">${medal}</td>
-          <td class="px-3 py-2 border border-slate-200 font-bold text-blue-900 underline decoration-blue-300">${d.district}</td>
+          <td onclick="selectDistrictFromRank('${safeDist}')" class="px-3 py-2 border border-slate-200 font-bold text-blue-900 underline decoration-blue-300 cursor-pointer">${d.district}</td>
           <td class="px-3 py-2 border border-slate-200 text-right">${formatNum(d.t_txn)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right font-bold">${formatNum(d.a_txn)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.txnPct)}">${d.txnPct}%</span></td>
+          <td class="px-3 py-2 border border-slate-200 text-center">${renderMomBadge(d.momPct)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right">${formatNum(d.t_amt)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right font-bold">${formatNum(d.a_amt)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.amtPct)}">${d.amtPct}%</span></td>
           <td class="px-3 py-2 border border-slate-200 text-right">${formatNum(d.t_rev)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right font-bold">${formatNum(d.a_rev)}</td>
           <td class="px-3 py-2 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.revPct)}">${d.revPct}%</span></td>
+          <td class="px-3 py-2 border border-slate-200 text-center no-print">
+            <div class="inline-flex gap-1">
+              <button onclick="copySingleDMMsg('${safeDist}', ${idx + 1}, ${rankList.length}, this)" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded">📲 DM Msg</button>
+              <button onclick="openAdvisoryModal('${safeDist}')" class="bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded">📝 Memo</button>
+            </div>
+          </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
+    function selectDistrictFromRank(dist) {
+      document.getElementById("districtFilter").value = dist;
+      onDistrictChange();
+      switchTab("activity");
+    }
+
     // =========================================================
-    // 1. DISTRICT-SPECIFIC WHATSAPP SUMMARY (BILINGUAL EN / HI)
+    // FEATURE 2: INDIVIDUAL DM PERSONALIZED WHATSAPP CARD
+    // =========================================================
+    function copySingleDMMsg(distName, rank, totalDists, btnEl) {
+      const selectedVert = document.getElementById("verticalFilter").value;
+      const selectedPeriod = document.getElementById("periodSelect").value;
+      const remDays = getRemainingDays(selectedPeriod);
+
+      const distRows = rawData.filter(r => r.district === distName && (selectedVert === "ALL" || r.vertical === selectedVert));
+      let tTxn = 0, aTxn = 0, tRev = 0, aRev = 0;
+
+      const svcList = distRows.map(r => {
+        const m = r.metrics[selectedPeriod];
+        tTxn += ceilNum(m.t_txn); aTxn += ceilNum(m.a_txn);
+        tRev += ceilNum(m.t_rev); aRev += ceilNum(m.a_rev);
+        return {
+          activity: r.activity,
+          tTxn: ceilNum(m.t_txn),
+          aTxn: ceilNum(m.a_txn),
+          pct: calcPctNum(ceilNum(m.a_txn), ceilNum(m.t_txn)),
+          gap: calcShortfall(ceilNum(m.t_txn), ceilNum(m.a_txn))
+        };
+      });
+
+      const txnPct = calcPctNum(aTxn, tTxn);
+      const revPct = calcPctNum(aRev, tRev);
+      const gapTxn = calcShortfall(tTxn, aTxn);
+      const dailyTxn = remDays > 0 ? Math.ceil(gapTxn / remDays) : gapTxn;
+
+      svcList.sort((a, b) => b.pct - a.pct);
+      const top2 = svcList.slice(0, 2).map((s, i) => `${i + 1}. ${s.activity}: *${s.pct}%* (${formatNum(s.aTxn)}/${formatNum(s.tTxn)})`).join("\n");
+      const bot2 = svcList.slice(-2).reverse().map((s, i) => `${i + 1}. ${s.activity}: *${s.pct}%* (Gap: ${formatNum(s.gap)})`).join("\n");
+
+      const link = new URL(window.location.origin + window.location.pathname);
+      link.searchParams.set("district", distName);
+
+      let msg = "";
+      if (currentLang === "HI") {
+        msg = `*CSC छत्तीसगढ़ — व्यक्तिगत जिला प्रदर्शन रिपोर्ट*\n` +
+              `📍 *जिला:* ${distName} | 🏆 *राज्य रैंक:* #${rank} / ${totalDists}\n` +
+              `📅 *अवधि:* ${selectedPeriod} (${selectedVert})\n\n` +
+              `📊 *कुल TXN:* ${formatNum(aTxn)} / ${formatNum(tTxn)} (*${txnPct}%*)\n` +
+              `💰 *कुल REV:* ₹${formatNum(aRev)} / ₹${formatNum(tRev)} (*${revPct}%*)\n` +
+              `⚡ *दैनिक आवश्यक TXN:* ${formatNum(dailyTxn)} / दिन\n\n` +
+              `✅ *शीर्ष 2 सेवाएं:*\n${top2}\n\n` +
+              `⚠️ *सुधार हेतु 2 सेवाएं (Focus):*\n${bot2}\n\n` +
+              `🔗 *आपका जिला डैशबोर्ड:* ${link.toString()}`;
+      } else {
+        msg = `*CSC CHHATTISGARH — INDIVIDUAL DM PERFORMANCE CARD*\n` +
+              `📍 *District:* ${distName} | 🏆 *State Rank:* #${rank} / ${totalDists}\n` +
+              `📅 *Period:* ${selectedPeriod} (${selectedVert})\n\n` +
+              `📊 *Overall TXN:* ${formatNum(aTxn)} / ${formatNum(tTxn)} (*${txnPct}%*)\n` +
+              `💰 *Overall REV:* ₹${formatNum(aRev)} / ₹${formatNum(tRev)} (*${revPct}%*)\n` +
+              `⚡ *Req. Daily Pace:* ${formatNum(dailyTxn)} TXN/day\n\n` +
+              `✅ *Top 2 Services:*\n${top2}\n\n` +
+              `⚠️ *Bottom 2 Lagging Services:*\n${bot2}\n\n` +
+              `🔗 *District Live Link:* ${link.toString()}`;
+      }
+
+      navigator.clipboard.writeText(msg).then(() => {
+        const old = btnEl.innerText;
+        btnEl.innerText = "✅ Copied!";
+        setTimeout(() => btnEl.innerText = old, 2000);
+      });
+    }
+
+    // =========================================================
+    // FEATURE 3: SERVICE-WISE 33-DISTRICT DRILL-DOWN MODAL
+    // =========================================================
+    function openServiceDrillDown(vertical, activity) {
+      const selectedPeriod = document.getElementById("periodSelect").value;
+      document.getElementById("svcModalVertical").innerText = vertical;
+      document.getElementById("svcModalTitle").innerText = `${activity} — 33 Districts Ranking (${selectedPeriod})`;
+
+      const rows = rawData
+        .filter(r => r.vertical === vertical && r.activity === activity)
+        .map(r => {
+          const m = r.metrics[selectedPeriod];
+          const tTxn = ceilNum(m.t_txn), aTxn = ceilNum(m.a_txn);
+          const tRev = ceilNum(m.t_rev), aRev = ceilNum(m.a_rev);
+          return {
+            district: r.district,
+            tTxn, aTxn,
+            gapTxn: calcShortfall(tTxn, aTxn),
+            pctTxn: calcPctNum(aTxn, tTxn),
+            tRev, aRev,
+            pctRev: calcPctNum(aRev, tRev)
+          };
+        })
+        .sort((a, b) => b.pctTxn - a.pctTxn);
+
+      activeServiceDrillData = { vertical, activity, period: selectedPeriod, rows };
+
+      const tbody = document.getElementById("svcModalBody");
+      tbody.innerHTML = "";
+
+      rows.forEach((d, i) => {
+        const medal = i === 0 ? "🥇 1" : i === 1 ? "🥈 2" : i === 2 ? "🥉 3" : (i + 1);
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-blue-50";
+        tr.innerHTML = `
+          <td class="px-3 py-2 text-center font-bold">${medal}</td>
+          <td class="px-3 py-2 font-bold text-slate-800">${d.district}</td>
+          <td class="px-3 py-2 text-right">${formatNum(d.tTxn)}</td>
+          <td class="px-3 py-2 text-right font-bold text-blue-900">${formatNum(d.aTxn)}</td>
+          <td class="px-3 py-2 text-right text-rose-600 font-semibold">${formatNum(d.gapTxn)}</td>
+          <td class="px-3 py-2 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.pctTxn)}">${d.pctTxn}%</span></td>
+          <td class="px-3 py-2 text-right font-bold text-emerald-900">₹${formatNum(d.aRev)}</td>
+          <td class="px-3 py-2 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.pctRev)}">${d.pctRev}%</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("serviceModal").classList.remove("hidden");
+    }
+
+    function copyServiceRankWA() {
+      const { vertical, activity, period, rows } = activeServiceDrillData;
+      if (!rows.length) return;
+
+      const top5 = rows.slice(0, 5).map((d, i) => `${i + 1}. *${d.district}* — *${d.pctTxn}%* (${formatNum(d.aTxn)}/${formatNum(d.tTxn)})`).join("\n");
+      const bot5 = rows.slice(-5).reverse().map(d => `${rows.indexOf(d) + 1}. *${d.district}* — *${d.pctTxn}%* (Gap: ${formatNum(d.gapTxn)})`).join("\n");
+
+      const msg = `*CSC CHHATTISGARH — SERVICE PERFORMANCE RANKING*\n` +
+                  `🔹 *Service:* ${activity} (${vertical})\n` +
+                  `📅 *Period:* ${period}\n\n` +
+                  `🏆 *Top 5 Districts:*\n${top5}\n\n` +
+                  `🚨 *Bottom 5 Districts (Need Immediate Push):*\n${bot5}`;
+
+      navigator.clipboard.writeText(msg).then(() => {
+        const btn = document.getElementById("svcWaBtn");
+        btn.innerText = "✅ Copied!";
+        setTimeout(() => btn.innerText = "📋 Copy Service Ranking WA", 2200);
+      });
+    }
+
+    // =========================================================
+    // FEATURE 1: FORMAL SHOW-CAUSE / ADVISORY MEMO GENERATOR
+    // =========================================================
+    function openAdvisoryModal(presetDistrict) {
+      const currentDist = presetDistrict || document.getElementById("districtFilter").value;
+      const sel = document.getElementById("advDistrictSelect");
+      if (currentDist && currentDist !== "ALL" && [...sel.options].some(o => o.value === currentDist)) {
+        sel.value = currentDist;
+      }
+      document.getElementById("advLangSelect").value = currentLang;
+      generateAdvisoryText();
+      document.getElementById("advisoryModal").classList.remove("hidden");
+    }
+
+    function generateAdvisoryText() {
+      const distName = document.getElementById("advDistrictSelect").value;
+      const lang = document.getElementById("advLangSelect").value;
+      const selectedPeriod = document.getElementById("periodSelect").value;
+      const selectedVert = document.getElementById("verticalFilter").value;
+      const remDays = getRemainingDays(selectedPeriod);
+      const todayStr = new Date().toLocaleDateString('en-IN');
+
+      const distRows = rawData.filter(r => r.district === distName && (selectedVert === "ALL" || r.vertical === selectedVert));
+      let tTxn = 0, aTxn = 0, tRev = 0, aRev = 0;
+      const zeroSvcs = [];
+      const laggingSvcs = [];
+
+      distRows.forEach(r => {
+        const m = r.metrics[selectedPeriod];
+        const tt = ceilNum(m.t_txn), at = ceilNum(m.a_txn);
+        const tr = ceilNum(m.t_rev), ar = ceilNum(m.a_rev);
+        tTxn += tt; aTxn += at; tRev += tr; aRev += ar;
+        const pct = calcPctNum(at, tt);
+        if ((tt > 0 || tr > 0) && at === 0 && ar === 0) zeroSvcs.push(r.activity);
+        else if (pct < 50 && tt > 0) laggingSvcs.push(`${r.activity} (${pct}%)`);
+      });
+
+      const txnPct = calcPctNum(aTxn, tTxn);
+      const revPct = calcPctNum(aRev, tRev);
+      const gapTxn = calcShortfall(tTxn, aTxn);
+      const gapRev = calcShortfall(tRev, aRev);
+      const dailyTxn = remDays > 0 ? Math.ceil(gapTxn / remDays) : gapTxn;
+
+      let letter = "";
+      if (lang === "HI") {
+        letter = `कार्यालय: CSC e-Governance Services India Limited (राज्य कार्यालय, रायपुर, छत्तीसगढ़)\n` +
+                 `दिनांक: ${todayStr}\n\n` +
+                 `प्रति,\nजिला प्रबंधक (District Manager),\nजिला — ${distName} (छत्तीसगढ़)\n\n` +
+                 `विषय: वित्तीय वर्ष 2026-27 (${selectedPeriod}) के अंतर्गत PMS लक्ष्यों की न्यून प्रगति के संबंध में स्पष्टीकरण एवं कार्ययोजना बाबत।\n\n` +
+                 `महोदय,\n` +
+                 `राज्य कार्यालय द्वारा की गई PMS समीक्षा में पाया गया है कि जिला ${distName} (${selectedVert}) की प्रगति निर्धारित लक्ष्यों के अनुरूप नहीं है:\n` +
+                 `• कुल ट्रांजेक्शन (TXN): लक्ष्य ${formatNum(tTxn)} के विरुद्ध उपलब्धि ${formatNum(aTxn)} (${txnPct}%), शेष अंतर (Shortfall): ${formatNum(gapTxn)}\n` +
+                 `• कुल राजस्व (REV): लक्ष्य ₹${formatNum(tRev)} के विरुद्ध उपलब्धि ₹${formatNum(aRev)} (${revPct}%), शेष अंतर: ₹${formatNum(gapRev)}\n` +
+                 `• शून्य उपलब्धि (Zero Achievement) वाली सेवाएं (${zeroSvcs.length}): ${zeroSvcs.slice(0, 6).join(", ") || "कोई नहीं"}\n` +
+                 `• 50% से कम प्रगति वाली प्रमुख सेवाएं: ${laggingSvcs.slice(0, 6).join(", ") || "कोई नहीं"}\n\n` +
+                 `अतः आपको निर्देशित किया जाता है कि शेष ${remDays} दिवसों में प्रतिदिन न्यूनतम ${formatNum(dailyTxn)} ट्रांजेक्शन सुनिश्चित करते हुए सभी शून्य एवं पिछड़ी सेवाओं को तत्काल सक्रिय करें तथा 03 दिवस के भीतर ब्लॉक-वार कार्ययोजना राज्य कार्यालय को प्रस्तुत करें।\n\n` +
+                 `भवदीय,\nराज्य टीम (PMS मॉनिटरिंग सेल)\nCSC SPV छत्तीसगढ़`;
+      } else {
+        letter = `OFFICE OF CSC e-GOVERNANCE SERVICES INDIA LIMITED (STATE OFFICE, RAIPUR, CHHATTISGARH)\n` +
+                 `Date: ${todayStr}\n\n` +
+                 `To,\nThe District Manager,\nDistrict — ${distName}, Chhattisgarh\n\n` +
+                 `Subject: Advisory Memo on Sub-Optimal PMS Target Achievement for ${selectedPeriod} (FY 2026-27).\n\n` +
+                 `Dear Sir/Madam,\n` +
+                 `During the State-level PMS review for ${selectedPeriod} (${selectedVert}), the performance of District ${distName} has been observed below the expected benchmark:\n` +
+                 `• Transactions (TXN): Achieved ${formatNum(aTxn)} against Target of ${formatNum(tTxn)} (${txnPct}%) | Shortfall: ${formatNum(gapTxn)}\n` +
+                 `• Revenue (REV): Achieved ₹${formatNum(aRev)} against Target of ₹${formatNum(tRev)} (${revPct}%) | Shortfall: ₹${formatNum(gapRev)}\n` +
+                 `• Zero-Achievement Services (${zeroSvcs.length}): ${zeroSvcs.slice(0, 6).join(", ") || "None"}\n` +
+                 `• Critical Lagging Services (<50%): ${laggingSvcs.slice(0, 6).join(", ") || "None"}\n\n` +
+                 `You are hereby advised to achieve a minimum daily run-rate of ${formatNum(dailyTxn)} TXN over the remaining ${remDays} days, activate all zero-achievement services immediately, and submit a block-wise recovery plan to the State Office within 3 days.\n\n` +
+                 `Regards,\nState Operations & PMS Monitoring Cell\nCSC SPV Chhattisgarh`;
+      }
+
+      document.getElementById("advisoryTextArea").value = letter;
+    }
+
+    function copyAdvisoryText() {
+      const txt = document.getElementById("advisoryTextArea").value;
+      navigator.clipboard.writeText(txt).then(() => {
+        const btn = document.getElementById("copyAdvBtn");
+        btn.innerText = "✅ Official Memo Copied!";
+        setTimeout(() => btn.innerText = "📋 Copy Official Memo", 2200);
+      });
+    }
+
+    // =========================================================
+    // DISTRICT-SPECIFIC WHATSAPP SUMMARY (BILINGUAL EN / HI)
     // =========================================================
     function copyWhatsAppSummary() {
       const dist = document.getElementById("districtFilter").value;
@@ -1134,7 +1530,7 @@
     }
 
     // =========================================================
-    // 2. TOP, MEDIAN & LOW PERFORMING DISTRICTS WHATSAPP TEMPLATE
+    // TOP, MEDIAN & LOW PERFORMING DISTRICTS WHATSAPP TEMPLATE
     // =========================================================
     function copyStateRankingWA() {
       if (!latestRankList || latestRankList.length === 0) return;
