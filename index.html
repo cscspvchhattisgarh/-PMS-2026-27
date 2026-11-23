@@ -3,28 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CSC Chhattisgarh - District PMS Portal (Target vs Achievement)</title>
+  <title>CSC Chhattisgarh — Executive PMS Portal (FY 2026-27)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-    .table-container { max-height: 68vh; overflow: auto; }
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    .table-container { max-height: 65vh; overflow: auto; }
     thead th { position: sticky; top: 0; z-index: 10; }
-    thead tr:nth-child(2) th { top: 38px; }
+    thead tr:nth-child(2) th { top: 36px; }
+
+    /* Clean Print / PDF Styling */
+    @media print {
+      @page { size: A4 landscape; margin: 10mm; }
+      body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .table-container { max-height: none !important; overflow: visible !important; }
+      header { background: #1e3a8a !important; color: white !important; padding: 10px !important; }
+    }
   </style>
 </head>
-<body class="text-gray-800">
+<body class="text-slate-800">
 
-  <!-- Header -->
-  <header class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
-      <div>
-        <h1 class="text-xl md:text-2xl font-bold tracking-tight">CSC Chhattisgarh — District PMS Dashboard</h1>
-        <p class="text-xs md:text-sm text-blue-200">Business Activity Wise Target vs Achievement (Monthly, Quarterly, Half-Yearly & Annually)</p>
+  <!-- Official Executive Header -->
+  <header class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-950 text-white shadow-lg border-b-4 border-amber-500">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center font-extrabold text-amber-400 text-lg tracking-wider shadow-inner">
+          CSC
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg md:text-2xl font-extrabold tracking-tight">CSC SPV CHHATTISGARH — PMS DASHBOARD</h1>
+            <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-slate-950 px-2 py-0.5 rounded">FY 2026-27</span>
+          </div>
+          <p class="text-xs text-blue-200 mt-0.5">District & Vertical Wise Performance Monitoring (Target vs Achievement)</p>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm font-semibold px-4 py-2 rounded-lg shadow transition">
-          Download CSV Report
+
+      <div class="flex flex-wrap items-center justify-center gap-2 no-print">
+        <span id="syncTime" class="text-[11px] bg-white/10 text-blue-100 px-3 py-1.5 rounded-lg border border-white/10">
+          Syncing...
+        </span>
+        <button onclick="copyWhatsAppSummary()" id="waBtn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition flex items-center gap-1.5">
+          <span>📋 Copy WhatsApp Summary</span>
+        </button>
+        <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow transition">
+          🖨️ Print / PDF
+        </button>
+        <button onclick="exportToCSV()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-lg shadow transition">
+          ⬇️ Export CSV
         </button>
       </div>
     </div>
@@ -33,30 +61,26 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- Filters Card -->
-    <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
+    <!-- Filter Control Panel -->
+    <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 no-print">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <!-- District Filter -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">1. Select District</label>
-          <select id="districtFilter" onchange="onFilterChange()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">1. Select District</label>
+          <select id="districtFilter" onchange="renderAll()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
             <option value="ALL">ALL DISTRICTS (STATE TOTAL)</option>
           </select>
         </div>
 
-        <!-- Vertical Filter -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">2. Select Vertical</label>
-          <select id="verticalFilter" onchange="renderDashboard()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">2. Select Vertical</label>
+          <select id="verticalFilter" onchange="renderAll()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
             <option value="ALL">ALL VERTICALS</option>
           </select>
         </div>
 
-        <!-- Period Type Filter -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">3. Period Category</label>
-          <select id="periodCategory" onchange="updatePeriodOptions()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">3. Period Category</label>
+          <select id="periodCategory" onchange="updatePeriodOptions()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none">
             <option value="MONTHLY">Monthly</option>
             <option value="QUARTERLY">Quarterly</option>
             <option value="HALFYEARLY">Half-Yearly</option>
@@ -64,110 +88,229 @@
           </select>
         </div>
 
-        <!-- Specific Period Filter -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">4. Select Period</label>
-          <select id="periodSelect" onchange="renderDashboard()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium bg-blue-50 border-blue-300 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">4. Select Period</label>
+          <select id="periodSelect" onchange="renderAll()" class="w-full border-2 border-blue-500 bg-blue-50/70 rounded-xl px-3 py-2.5 text-sm font-bold text-blue-950 focus:ring-2 focus:ring-blue-600 focus:outline-none">
             <option value="YEARLY">YEARLY</option>
           </select>
         </div>
-
       </div>
     </div>
 
-    <!-- Summary KPI Cards -->
+    <!-- Active Selection Banner (Visible in Print too) -->
+    <div class="mb-4 flex flex-wrap justify-between items-center gap-2 bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs">
+      <div>
+        <span class="text-slate-400">Viewing Report:</span>
+        <strong id="bannerTitle" class="text-amber-400 ml-1 uppercase">ALL DISTRICTS | ALL VERTICALS | YEARLY</strong>
+      </div>
+      <div class="text-slate-300">All figures are rounded-up whole numbers</div>
+    </div>
+
+    <!-- Top KPI Cards (TXN, AMT, REV with Shortfall & Progress) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <!-- TXN Card -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-gray-500 uppercase">Transactions (TXN)</span>
-          <span id="kpiTxnPct" class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
+      <!-- TXN KPI -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-blue-600">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Transactions (TXN)</span>
+          <span id="kpiTxnPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">0%</span>
         </div>
-        <div class="mt-2 flex justify-between items-baseline">
+        <div class="grid grid-cols-3 gap-2 mt-3 pt-2 border-t border-slate-100">
           <div>
-            <p class="text-xs text-gray-400">Achievement</p>
-            <p id="kpiTxnAch" class="text-lg font-bold text-gray-900">0</p>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Target</p>
+            <p id="kpiTxnTgt" class="text-sm font-bold text-slate-700">0</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Achieved</p>
+            <p id="kpiTxnAch" class="text-base font-extrabold text-blue-900">0</p>
           </div>
           <div class="text-right">
-            <p class="text-xs text-gray-400">Target</p>
-            <p id="kpiTxnTgt" class="text-sm font-semibold text-gray-600">0</p>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Shortfall</p>
+            <p id="kpiTxnGap" class="text-sm font-bold text-rose-600">0</p>
           </div>
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+          <div id="kpiTxnBar" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
       </div>
 
-      <!-- AMT Card -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-600">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-gray-500 uppercase">Amount (AMT in ₹)</span>
-          <span id="kpiAmtPct" class="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
+      <!-- AMT KPI -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-indigo-600">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Amount (AMT in ₹)</span>
+          <span id="kpiAmtPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">0%</span>
         </div>
-        <div class="mt-2 flex justify-between items-baseline">
+        <div class="grid grid-cols-3 gap-2 mt-3 pt-2 border-t border-slate-100">
           <div>
-            <p class="text-xs text-gray-400">Achievement</p>
-            <p id="kpiAmtAch" class="text-lg font-bold text-gray-900">0</p>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Target</p>
+            <p id="kpiAmtTgt" class="text-sm font-bold text-slate-700">0</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Achieved</p>
+            <p id="kpiAmtAch" class="text-base font-extrabold text-indigo-900">0</p>
           </div>
           <div class="text-right">
-            <p class="text-xs text-gray-400">Target</p>
-            <p id="kpiAmtTgt" class="text-sm font-semibold text-gray-600">0</p>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Shortfall</p>
+            <p id="kpiAmtGap" class="text-sm font-bold text-rose-600">0</p>
           </div>
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+          <div id="kpiAmtBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
       </div>
 
-      <!-- REV Card -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-600">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-gray-500 uppercase">Revenue (REV in ₹)</span>
-          <span id="kpiRevPct" class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
+      <!-- REV KPI -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-600">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Revenue (REV in ₹)</span>
+          <span id="kpiRevPct" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0%</span>
         </div>
-        <div class="mt-2 flex justify-between items-baseline">
+        <div class="grid grid-cols-3 gap-2 mt-3 pt-2 border-t border-slate-100">
           <div>
-            <p class="text-xs text-gray-400">Achievement</p>
-            <p id="kpiRevAch" class="text-lg font-bold text-gray-900">0</p>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Target</p>
+            <p id="kpiRevTgt" class="text-sm font-bold text-slate-700">0</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Achieved</p>
+            <p id="kpiRevAch" class="text-base font-extrabold text-emerald-900">0</p>
           </div>
           <div class="text-right">
-            <p class="text-xs text-gray-400">Target</p>
-            <p id="kpiRevTgt" class="text-sm font-semibold text-gray-600">0</p>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase">Shortfall</p>
+            <p id="kpiRevGap" class="text-sm font-bold text-rose-600">0</p>
           </div>
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+          <div id="kpiRevBar" class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
       </div>
     </div>
 
-    <!-- Search Box -->
-    <div class="mb-3 flex justify-between items-center">
-      <input type="text" id="searchInput" onkeyup="renderDashboard()" placeholder="Search Business Activity..." class="w-full md:w-80 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-      <span id="rowCount" class="text-xs font-medium text-gray-500 ml-3">Loading data...</span>
+    <!-- Interactive Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 no-print">
+      <!-- Chart 1: Vertical Comparison -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-sm font-bold text-slate-800">Vertical-wise Target vs Achievement</h3>
+          <select id="chartMetric" onchange="renderCharts()" class="text-xs border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-slate-50">
+            <option value="txn">Transactions (TXN)</option>
+            <option value="amt">Amount (AMT)</option>
+            <option value="rev">Revenue (REV)</option>
+          </select>
+        </div>
+        <div class="h-64">
+          <canvas id="verticalChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Monthly Trend -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-sm font-bold text-slate-800">Month-on-Month Performance Trend (Apr – Mar)</h3>
+          <span class="text-[11px] font-medium text-slate-400">Selected District & Vertical</span>
+        </div>
+        <div class="h-64">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div id="loader" class="p-10 text-center text-gray-500 font-medium">
-        Fetching live data from Google Sheet... Please wait.
+    <!-- Navigation Tabs (Activity View vs District Leaderboard) -->
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-4 no-print">
+      <div class="inline-flex bg-slate-200 p-1 rounded-xl">
+        <button onclick="switchTab('activity')" id="tabActivityBtn" class="px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition">
+          📊 Business Activity Wise Table
+        </button>
+        <button onclick="switchTab('leaderboard')" id="tabLeaderboardBtn" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+          🏆 District Ranking Leaderboard (33 Districts)
+        </button>
       </div>
-      <div class="table-container hidden" id="tableWrapper">
-        <table class="w-full text-xs text-left border-collapse" id="pmsTable">
-          <thead>
-            <tr class="bg-gray-800 text-white">
-              <th rowspan="2" class="px-3 py-2 border border-gray-700">S.No</th>
-              <th rowspan="2" class="px-3 py-2 border border-gray-700">Vertical</th>
-              <th rowspan="2" class="px-3 py-2 border border-gray-700 min-w-[220px]">Business Activity</th>
-              <th colspan="3" class="px-3 py-2 border border-gray-700 text-center bg-blue-900">TARGET</th>
-              <th colspan="3" class="px-3 py-2 border border-gray-700 text-center bg-emerald-900">ACHIEVEMENT</th>
-              <th colspan="3" class="px-3 py-2 border border-gray-700 text-center bg-amber-900">% ACHIEVED</th>
-            </tr>
-            <tr class="bg-gray-700 text-gray-100">
-              <th class="px-2 py-1.5 border border-gray-600 text-right">TXN</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">AMT</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">REV</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">TXN</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">AMT</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">REV</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">TXN %</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">AMT %</th>
-              <th class="px-2 py-1.5 border border-gray-600 text-right">REV %</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody" class="divide-y divide-gray-200"></tbody>
-        </table>
+
+      <!-- Quick Status Filters (Only for Activity Tab) -->
+      <div id="statusPills" class="flex flex-wrap items-center gap-1.5">
+        <button onclick="setStatusFilter('ALL')" id="pill-ALL" class="status-pill px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white">All</button>
+        <button onclick="setStatusFilter('ACHIEVED')" id="pill-ACHIEVED" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Achieved (100%+)</button>
+        <button onclick="setStatusFilter('NEAR')" id="pill-NEAR" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">Near Target (75-99%)</button>
+        <button onclick="setStatusFilter('CRITICAL')" id="pill-CRITICAL" class="status-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 hover:bg-rose-200">Critical (&lt;50%)</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: BUSINESS ACTIVITY TABLE -->
+    <div id="activitySection">
+      <div class="mb-3 flex flex-col sm:flex-row justify-between items-center gap-2 no-print">
+        <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="🔍 Search Business Activity or Vertical..." class="w-full sm:w-80 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none">
+        <span id="rowCount" class="text-xs font-semibold text-slate-500">Loading records...</span>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div id="loader" class="p-12 text-center text-slate-500 font-semibold text-sm">
+          ⏳ Fetching live data from "New Compiled Data" Google Sheet...
+        </div>
+        <div class="table-container hidden" id="tableWrapper">
+          <table class="w-full text-xs text-left border-collapse" id="pmsTable">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th rowspan="2" class="px-3 py-2.5 border border-slate-700">S.No</th>
+                <th rowspan="2" class="px-3 py-2.5 border border-slate-700">Vertical</th>
+                <th rowspan="2" class="px-3 py-2.5 border border-slate-700 min-w-[200px]">Business Activity</th>
+                <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-blue-900">TARGET</th>
+                <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-emerald-900">ACHIEVEMENT</th>
+                <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-rose-950">BALANCE / SHORTFALL</th>
+                <th colspan="3" class="px-2 py-2 border border-slate-700 text-center bg-amber-900">% ACHIEVED</th>
+              </tr>
+              <tr class="bg-slate-800 text-slate-200 text-[11px]">
+                <th class="px-2 py-1.5 border border-slate-700 text-right">TXN</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">AMT</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">REV</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">TXN</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">AMT</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">REV</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">TXN</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">AMT</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">REV</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">TXN %</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">AMT %</th>
+                <th class="px-2 py-1.5 border border-slate-700 text-right">REV %</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DISTRICT LEADERBOARD SECTION -->
+    <div id="leaderboardSection" class="hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">District Performance Ranking (Sorted by TXN % Achievement)</h3>
+            <p class="text-xs text-slate-500">Kisi bhi District par click karke uska detailed Business Activity report dekhein</p>
+          </div>
+          <select id="rankSortBy" onchange="renderLeaderboard()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 font-bold bg-white">
+            <option value="txnPct">Rank by TXN %</option>
+            <option value="amtPct">Rank by AMT %</option>
+            <option value="revPct">Rank by REV %</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="px-3 py-2.5 border border-slate-700 text-center">Rank</th>
+                <th class="px-3 py-2.5 border border-slate-700">District Name</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">Target TXN</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">Achieved TXN</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">TXN %</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">Target AMT</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">Achieved AMT</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">AMT %</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">Target REV</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">Achieved REV</th>
+                <th class="px-3 py-2.5 border border-slate-700 text-right">REV %</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -175,20 +318,24 @@
 
   <script>
     // APNA DEPLOYED WEB APP URL YAHAN PASTE KAREIN
-    const API_URL = "https://script.google.com/macros/s/AKfycbyg2DZmEefG91hl2Yhlrqh2AA1tuaQP0z8nFfBfYNXrkf8hWwibvs6OrGmybSnsO1o8ng/exec";
+    const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 
     let rawData = [];
     let currentFilteredRows = [];
+    let activeStatusFilter = "ALL";
+    let verticalChartInstance = null;
+    let trendChartInstance = null;
 
+    const monthsList = ["APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY", "MARCH"];
     const periodOptionsMap = {
-      "MONTHLY": ["APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY", "MARCH"],
+      "MONTHLY": monthsList,
       "QUARTERLY": ["QUARTER 1", "QUARTER 2", "QUARTER 3", "QUARTER 4"],
       "HALFYEARLY": ["HALF YEARLY 1 (APR-SEP)", "HALF YEARLY 2 (OCT-MAR)"],
       "ANNUALLY": ["YEARLY"]
     };
 
     window.onload = async () => {
-      updatePeriodOptions();
+      updatePeriodOptions(false);
       try {
         const res = await fetch(API_URL);
         const json = await res.json();
@@ -197,12 +344,14 @@
           populateDropdowns();
           document.getElementById("loader").classList.add("hidden");
           document.getElementById("tableWrapper").classList.remove("hidden");
-          renderDashboard();
+          const now = new Date();
+          document.getElementById("syncTime").innerText = "Synced: " + now.toLocaleDateString('en-IN') + " " + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+          renderAll();
         } else {
           document.getElementById("loader").innerText = "Error: " + json.message;
         }
       } catch (e) {
-        document.getElementById("loader").innerText = "Failed to load data. Check Web App URL & Permissions.";
+        document.getElementById("loader").innerText = "Failed to connect to Google Sheet. Please check Web App URL.";
       }
     };
 
@@ -226,7 +375,7 @@
       });
     }
 
-    function updatePeriodOptions() {
+    function updatePeriodOptions(shouldRender = true) {
       const cat = document.getElementById("periodCategory").value;
       const periodSelect = document.getElementById("periodSelect");
       periodSelect.innerHTML = "";
@@ -236,44 +385,93 @@
         opt.textContent = p;
         periodSelect.appendChild(opt);
       });
-      renderDashboard();
+      if (shouldRender) renderAll();
     }
 
-    function onFilterChange() {
-      renderDashboard();
+    function ceilNum(n) {
+      return Math.ceil(Number(n || 0));
     }
 
-    // Bina decimal ke round-up formatting
     function formatNum(n) {
-      const rounded = Math.ceil(Number(n || 0));
-      return rounded.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      return ceilNum(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
     }
 
-    // Percentage bhi bina decimal ke round-up
-    function calcPct(ach, tgt) {
-      if (!tgt || tgt === 0) return ach > 0 ? "100%" : "0%";
-      return Math.ceil((ach / tgt) * 100) + "%";
+    function calcPctNum(ach, tgt) {
+      if (!tgt || tgt === 0) return ach > 0 ? 100 : 0;
+      return Math.ceil((ach / tgt) * 100);
     }
 
-    function getBadgeColor(ach, tgt) {
-      if (!tgt || tgt === 0) return "text-gray-500";
-      const pct = Math.ceil((ach / tgt) * 100);
-      if (pct >= 100) return "text-emerald-700 font-bold bg-emerald-50";
-      if (pct >= 75) return "text-amber-700 font-semibold bg-amber-50";
-      return "text-red-600 font-semibold bg-red-50";
+    function calcShortfall(tgt, ach) {
+      const diff = ceilNum(tgt) - ceilNum(ach);
+      return diff > 0 ? diff : 0;
     }
 
-    function renderDashboard() {
+    function getPctBadge(pct) {
+      if (pct >= 100) return "bg-emerald-100 text-emerald-800 border-emerald-300";
+      if (pct >= 75) return "bg-amber-100 text-amber-800 border-amber-300";
+      if (pct >= 50) return "bg-orange-100 text-orange-800 border-orange-300";
+      return "bg-rose-100 text-rose-800 border-rose-300";
+    }
+
+    function getBarColor(pct) {
+      if (pct >= 100) return "bg-emerald-500";
+      if (pct >= 75) return "bg-amber-500";
+      return "bg-rose-500";
+    }
+
+    function switchTab(tab) {
+      const actSec = document.getElementById("activitySection");
+      const leadSec = document.getElementById("leaderboardSection");
+      const actBtn = document.getElementById("tabActivityBtn");
+      const leadBtn = document.getElementById("tabLeaderboardBtn");
+      const pills = document.getElementById("statusPills");
+
+      if (tab === "activity") {
+        actSec.classList.remove("hidden");
+        leadSec.classList.add("hidden");
+        pills.classList.remove("hidden");
+        actBtn.className = "px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition";
+        leadBtn.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+      } else {
+        actSec.classList.add("hidden");
+        leadSec.classList.remove("hidden");
+        pills.classList.add("hidden");
+        leadBtn.className = "px-4 py-2 rounded-lg text-xs font-bold bg-white text-blue-950 shadow-sm transition";
+        actBtn.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+        renderLeaderboard();
+      }
+    }
+
+    function setStatusFilter(status) {
+      activeStatusFilter = status;
+      document.querySelectorAll(".status-pill").forEach(btn => {
+        btn.classList.remove("ring-2", "ring-offset-1", "ring-slate-900");
+      });
+      document.getElementById("pill-" + status).classList.add("ring-2", "ring-offset-1", "ring-slate-900");
+      renderTable();
+    }
+
+    function renderAll() {
+      const dist = document.getElementById("districtFilter").value;
+      const vert = document.getElementById("verticalFilter").value;
+      const period = document.getElementById("periodSelect").value;
+      document.getElementById("bannerTitle").innerText = `${dist} | ${vert} | ${period}`;
+
+      renderTable();
+      renderCharts();
+      renderLeaderboard();
+    }
+
+    function renderTable() {
       const selectedDist = document.getElementById("districtFilter").value;
       const selectedVert = document.getElementById("verticalFilter").value;
       const selectedPeriod = document.getElementById("periodSelect").value;
       const searchQuery = document.getElementById("searchInput").value.toLowerCase();
 
-      let filtered = rawData.filter(r => {
+      const filtered = rawData.filter(r => {
         const matchDist = (selectedDist === "ALL") || (r.district === selectedDist);
         const matchVert = (selectedVert === "ALL") || (r.vertical === selectedVert);
-        const matchSearch = r.activity.toLowerCase().includes(searchQuery) || r.vertical.toLowerCase().includes(searchQuery);
-        return matchDist && matchVert && matchSearch;
+        return matchDist && matchVert;
       });
 
       const aggregatedMap = new Map();
@@ -289,73 +487,260 @@
           });
         }
         const entry = aggregatedMap.get(key);
-        entry.t_txn += Math.ceil(m.t_txn);
-        entry.t_amt += Math.ceil(m.t_amt);
-        entry.t_rev += Math.ceil(m.t_rev);
-        entry.a_txn += Math.ceil(m.a_txn);
-        entry.a_amt += Math.ceil(m.a_amt);
-        entry.a_rev += Math.ceil(m.a_rev);
+        entry.t_txn += ceilNum(m.t_txn);
+        entry.t_amt += ceilNum(m.t_amt);
+        entry.t_rev += ceilNum(m.t_rev);
+        entry.a_txn += ceilNum(m.a_txn);
+        entry.a_amt += ceilNum(m.a_amt);
+        entry.a_rev += ceilNum(m.a_rev);
       });
 
-      currentFilteredRows = Array.from(aggregatedMap.values());
+      let rows = Array.from(aggregatedMap.values());
 
+      // KPI Totals calculate karein (Search aur Status filter se pehle)
       let totT_Txn = 0, totT_Amt = 0, totT_Rev = 0;
       let totA_Txn = 0, totA_Amt = 0, totA_Rev = 0;
+      rows.forEach(r => {
+        totT_Txn += r.t_txn; totT_Amt += r.t_amt; totT_Rev += r.t_rev;
+        totA_Txn += r.a_txn; totA_Amt += r.a_amt; totA_Rev += r.a_rev;
+      });
 
+      updateKPICards(totT_Txn, totA_Txn, totT_Amt, totA_Amt, totT_Rev, totA_Rev);
+
+      // Apply Search & Status Quick Filter
+      rows = rows.filter(r => {
+        const matchSearch = r.activity.toLowerCase().includes(searchQuery) || r.vertical.toLowerCase().includes(searchQuery);
+        if (!matchSearch) return false;
+        const pct = calcPctNum(r.a_txn, r.t_txn);
+        if (activeStatusFilter === "ACHIEVED") return pct >= 100;
+        if (activeStatusFilter === "NEAR") return pct >= 75 && pct < 100;
+        if (activeStatusFilter === "CRITICAL") return pct < 50;
+        return true;
+      });
+
+      currentFilteredRows = rows;
       const tbody = document.getElementById("tableBody");
       tbody.innerHTML = "";
 
-      currentFilteredRows.forEach((row, idx) => {
-        totT_Txn += row.t_txn; totT_Amt += row.t_amt; totT_Rev += row.t_rev;
-        totA_Txn += row.a_txn; totA_Amt += row.a_amt; totA_Rev += row.a_rev;
+      rows.forEach((row, idx) => {
+        const pctTxn = calcPctNum(row.a_txn, row.t_txn);
+        const pctAmt = calcPctNum(row.a_amt, row.t_amt);
+        const pctRev = calcPctNum(row.a_rev, row.t_rev);
+
+        const gapTxn = calcShortfall(row.t_txn, row.a_txn);
+        const gapAmt = calcShortfall(row.t_amt, row.a_amt);
+        const gapRev = calcShortfall(row.t_rev, row.a_rev);
 
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-blue-50/50 transition";
+        tr.className = "hover:bg-blue-50/60 transition";
         tr.innerHTML = `
-          <td class="px-3 py-2 border border-gray-200 text-gray-500">${idx + 1}</td>
-          <td class="px-3 py-2 border border-gray-200 font-medium text-indigo-800">${row.vertical}</td>
-          <td class="px-3 py-2 border border-gray-200 font-semibold text-gray-900">${row.activity}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right">${formatNum(row.t_txn)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right">${formatNum(row.t_amt)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right">${formatNum(row.t_rev)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right font-semibold text-blue-900">${formatNum(row.a_txn)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right font-semibold text-blue-900">${formatNum(row.a_amt)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right font-semibold text-blue-900">${formatNum(row.a_rev)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right ${getBadgeColor(row.a_txn, row.t_txn)}">${calcPct(row.a_txn, row.t_txn)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right ${getBadgeColor(row.a_amt, row.t_amt)}">${calcPct(row.a_amt, row.t_amt)}</td>
-          <td class="px-2 py-2 border border-gray-200 text-right ${getBadgeColor(row.a_rev, row.t_rev)}">${calcPct(row.a_rev, row.t_rev)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-slate-500 font-medium">${idx + 1}</td>
+          <td class="px-3 py-2.5 border border-slate-200 font-bold text-indigo-900">${row.vertical}</td>
+          <td class="px-3 py-2.5 border border-slate-200 font-semibold text-slate-900">${row.activity}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right">${formatNum(row.t_txn)}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right">${formatNum(row.t_amt)}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right">${formatNum(row.t_rev)}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_txn)}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_amt)}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right font-bold text-blue-900">${formatNum(row.a_rev)}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right font-semibold ${gapTxn > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapTxn > 0 ? formatNum(gapTxn) : '0'}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right font-semibold ${gapAmt > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapAmt > 0 ? formatNum(gapAmt) : '0'}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right font-semibold ${gapRev > 0 ? 'text-rose-600' : 'text-emerald-600'}">${gapRev > 0 ? formatNum(gapRev) : '0'}</td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right">
+            <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctTxn)}">${pctTxn}%</span>
+            <div class="w-full bg-slate-200 h-1 rounded-full mt-1"><div class="${getBarColor(pctTxn)} h-1 rounded-full" style="width:${Math.min(pctTxn, 100)}%"></div></div>
+          </td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right">
+            <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctAmt)}">${pctAmt}%</span>
+            <div class="w-full bg-slate-200 h-1 rounded-full mt-1"><div class="${getBarColor(pctAmt)} h-1 rounded-full" style="width:${Math.min(pctAmt, 100)}%"></div></div>
+          </td>
+          <td class="px-2 py-2.5 border border-slate-200 text-right">
+            <span class="px-1.5 py-0.5 rounded text-[11px] font-bold border ${getPctBadge(pctRev)}">${pctRev}%</span>
+            <div class="w-full bg-slate-200 h-1 rounded-full mt-1"><div class="${getBarColor(pctRev)} h-1 rounded-full" style="width:${Math.min(pctRev, 100)}%"></div></div>
+          </td>
         `;
         tbody.appendChild(tr);
       });
 
-      document.getElementById("kpiTxnAch").innerText = formatNum(totA_Txn);
-      document.getElementById("kpiTxnTgt").innerText = formatNum(totT_Txn);
-      document.getElementById("kpiTxnPct").innerText = calcPct(totA_Txn, totT_Txn);
+      document.getElementById("rowCount").innerText = `Showing ${rows.length} Business Activities`;
+    }
 
-      document.getElementById("kpiAmtAch").innerText = "₹ " + formatNum(totA_Amt);
-      document.getElementById("kpiAmtTgt").innerText = "₹ " + formatNum(totT_Amt);
-      document.getElementById("kpiAmtPct").innerText = calcPct(totA_Amt, totT_Amt);
+    function updateKPICards(tTxn, aTxn, tAmt, aAmt, tRev, aRev) {
+      const pTxn = calcPctNum(aTxn, tTxn);
+      const pAmt = calcPctNum(aAmt, tAmt);
+      const pRev = calcPctNum(aRev, tRev);
 
-      document.getElementById("kpiRevAch").innerText = "₹ " + formatNum(totA_Rev);
-      document.getElementById("kpiRevTgt").innerText = "₹ " + formatNum(totT_Rev);
-      document.getElementById("kpiRevPct").innerText = calcPct(totA_Rev, totT_Rev);
+      document.getElementById("kpiTxnTgt").innerText = formatNum(tTxn);
+      document.getElementById("kpiTxnAch").innerText = formatNum(aTxn);
+      document.getElementById("kpiTxnGap").innerText = formatNum(calcShortfall(tTxn, aTxn));
+      document.getElementById("kpiTxnPct").innerText = pTxn + "%";
+      document.getElementById("kpiTxnBar").style.width = Math.min(pTxn, 100) + "%";
 
-      document.getElementById("rowCount").innerText = `Showing ${currentFilteredRows.length} activities (${selectedPeriod})`;
+      document.getElementById("kpiAmtTgt").innerText = "₹" + formatNum(tAmt);
+      document.getElementById("kpiAmtAch").innerText = "₹" + formatNum(aAmt);
+      document.getElementById("kpiAmtGap").innerText = "₹" + formatNum(calcShortfall(tAmt, aAmt));
+      document.getElementById("kpiAmtPct").innerText = pAmt + "%";
+      document.getElementById("kpiAmtBar").style.width = Math.min(pAmt, 100) + "%";
+
+      document.getElementById("kpiRevTgt").innerText = "₹" + formatNum(tRev);
+      document.getElementById("kpiRevAch").innerText = "₹" + formatNum(aRev);
+      document.getElementById("kpiRevGap").innerText = "₹" + formatNum(calcShortfall(tRev, aRev));
+      document.getElementById("kpiRevPct").innerText = pRev + "%";
+      document.getElementById("kpiRevBar").style.width = Math.min(pRev, 100) + "%";
+    }
+
+    function renderCharts() {
+      const selectedDist = document.getElementById("districtFilter").value;
+      const selectedVert = document.getElementById("verticalFilter").value;
+      const selectedPeriod = document.getElementById("periodSelect").value;
+      const metric = document.getElementById("chartMetric").value; // txn, amt, rev
+
+      // 1. Vertical Bar Chart Data
+      const distFiltered = rawData.filter(r => (selectedDist === "ALL") || (r.district === selectedDist));
+      const vertMap = new Map();
+      distFiltered.forEach(r => {
+        const m = r.metrics[selectedPeriod];
+        if (!vertMap.has(r.vertical)) vertMap.set(r.vertical, { t: 0, a: 0 });
+        const v = vertMap.get(r.vertical);
+        v.t += ceilNum(m["t_" + metric]);
+        v.a += ceilNum(m["a_" + metric]);
+      });
+
+      const vLabels = Array.from(vertMap.keys());
+      const vTargets = vLabels.map(k => vertMap.get(k).t);
+      const vAchs = vLabels.map(k => vertMap.get(k).a);
+
+      if (verticalChartInstance) verticalChartInstance.destroy();
+      verticalChartInstance = new Chart(document.getElementById("verticalChart"), {
+        type: 'bar',
+        data: {
+          labels: vLabels,
+          datasets: [
+            { label: 'Target', data: vTargets, backgroundColor: '#94a3b8', borderRadius: 4 },
+            { label: 'Achievement', data: vAchs, backgroundColor: '#2563eb', borderRadius: 4 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+      });
+
+      // 2. Monthly Trend Chart Data
+      const bothFiltered = rawData.filter(r => {
+        const dMatch = (selectedDist === "ALL") || (r.district === selectedDist);
+        const vMatch = (selectedVert === "ALL") || (r.vertical === selectedVert);
+        return dMatch && vMatch;
+      });
+
+      const mTargets = monthsList.map(mon => bothFiltered.reduce((sum, r) => sum + ceilNum(r.metrics[mon]["t_" + metric]), 0));
+      const mAchs = monthsList.map(mon => bothFiltered.reduce((sum, r) => sum + ceilNum(r.metrics[mon]["a_" + metric]), 0));
+
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(document.getElementById("trendChart"), {
+        type: 'line',
+        data: {
+          labels: monthsList.map(m => m.slice(0, 3)),
+          datasets: [
+            { label: 'Monthly Target', data: mTargets, borderColor: '#94a3b8', borderDash: [5, 5], tension: 0.3, fill: false },
+            { label: 'Monthly Achievement', data: mAchs, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.12)', tension: 0.3, fill: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+      });
+    }
+
+    function renderLeaderboard() {
+      const selectedVert = document.getElementById("verticalFilter").value;
+      const selectedPeriod = document.getElementById("periodSelect").value;
+      const sortBy = document.getElementById("rankSortBy").value;
+
+      const distMap = new Map();
+      rawData.forEach(r => {
+        if (selectedVert !== "ALL" && r.vertical !== selectedVert) return;
+        const m = r.metrics[selectedPeriod];
+        if (!distMap.has(r.district)) {
+          distMap.set(r.district, { district: r.district, t_txn: 0, a_txn: 0, t_amt: 0, a_amt: 0, t_rev: 0, a_rev: 0 });
+        }
+        const d = distMap.get(r.district);
+        d.t_txn += ceilNum(m.t_txn); d.a_txn += ceilNum(m.a_txn);
+        d.t_amt += ceilNum(m.t_amt); d.a_amt += ceilNum(m.a_amt);
+        d.t_rev += ceilNum(m.t_rev); d.a_rev += ceilNum(m.a_rev);
+      });
+
+      const rankList = Array.from(distMap.values()).map(d => ({
+        ...d,
+        txnPct: calcPctNum(d.a_txn, d.t_txn),
+        amtPct: calcPctNum(d.a_amt, d.t_amt),
+        revPct: calcPctNum(d.a_rev, d.t_rev)
+      }));
+
+      rankList.sort((a, b) => b[sortBy] - a[sortBy]);
+
+      const tbody = document.getElementById("leaderboardBody");
+      tbody.innerHTML = "";
+
+      rankList.forEach((d, idx) => {
+        const medal = idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : (idx + 1);
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-blue-50 cursor-pointer transition";
+        tr.onclick = () => {
+          document.getElementById("districtFilter").value = d.district;
+          switchTab("activity");
+          renderAll();
+        };
+        tr.innerHTML = `
+          <td class="px-3 py-2.5 border border-slate-200 text-center font-extrabold text-slate-800">${medal}</td>
+          <td class="px-3 py-2.5 border border-slate-200 font-bold text-blue-900 underline decoration-blue-300">${d.district}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right">${formatNum(d.t_txn)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right font-bold">${formatNum(d.a_txn)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.txnPct)}">${d.txnPct}%</span></td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right">${formatNum(d.t_amt)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right font-bold">${formatNum(d.a_amt)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.amtPct)}">${d.amtPct}%</span></td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right">${formatNum(d.t_rev)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right font-bold">${formatNum(d.a_rev)}</td>
+          <td class="px-3 py-2.5 border border-slate-200 text-right"><span class="px-2 py-0.5 rounded font-bold border ${getPctBadge(d.revPct)}">${d.revPct}%</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function copyWhatsAppSummary() {
+      const dist = document.getElementById("districtFilter").value;
+      const period = document.getElementById("periodSelect").value;
+      const txnPct = document.getElementById("kpiTxnPct").innerText;
+      const revPct = document.getElementById("kpiRevPct").innerText;
+
+      const sorted = [...currentFilteredRows].sort((a, b) => calcPctNum(b.a_txn, b.t_txn) - calcPctNum(a.a_txn, a.t_txn));
+      const top3 = sorted.slice(0, 3).map((r, i) => `${i + 1}. ${r.activity}: ${calcPctNum(r.a_txn, r.t_txn)}% (${formatNum(r.a_txn)}/${formatNum(r.t_txn)})`).join("\n");
+      const bottom3 = sorted.slice(-3).reverse().map((r, i) => `${i + 1}. ${r.activity}: ${calcPctNum(r.a_txn, r.t_txn)}% (Gap: ${formatNum(calcShortfall(r.t_txn, r.a_txn))})`).join("\n");
+
+      const msg = `*CSC CHHATTISGARH — PMS REVIEW SUMMARY*\n` +
+                  `📍 *District:* ${dist}\n` +
+                  `📅 *Period:* ${period}\n` +
+                  `📊 *Overall TXN:* ${document.getElementById("kpiTxnAch").innerText} / ${document.getElementById("kpiTxnTgt").innerText} (*${txnPct}*)\n` +
+                  `💰 *Overall REV:* ${document.getElementById("kpiRevAch").innerText} / ${document.getElementById("kpiRevTgt").innerText} (*${revPct}*)\n\n` +
+                  `✅ *Top Performing Activities:*\n${top3 || "N/A"}\n\n` +
+                  `⚠️ *Focus / Lagging Activities:*\n${bottom3 || "N/A"}`;
+
+      navigator.clipboard.writeText(msg).then(() => {
+        const btn = document.getElementById("waBtn");
+        btn.innerHTML = "✅ Copied for WhatsApp!";
+        setTimeout(() => btn.innerHTML = "📋 Copy WhatsApp Summary", 2500);
+      });
     }
 
     function exportToCSV() {
       const dist = document.getElementById("districtFilter").value;
       const period = document.getElementById("periodSelect").value;
-      let csv = `District,Vertical,Business Activity,Period,Target TXN,Target AMT,Target REV,Achievement TXN,Achievement AMT,Achievement REV,TXN %,AMT %,REV %\n`;
+      let csv = `District,Vertical,Business Activity,Period,Target TXN,Target AMT,Target REV,Achievement TXN,Achievement AMT,Achievement REV,Shortfall TXN,Shortfall AMT,Shortfall REV,TXN %,AMT %,REV %\n`;
 
       currentFilteredRows.forEach(r => {
-        csv += `"${dist}","${r.vertical}","${r.activity}","${period}",${Math.ceil(r.t_txn)},${Math.ceil(r.t_amt)},${Math.ceil(r.t_rev)},${Math.ceil(r.a_txn)},${Math.ceil(r.a_amt)},${Math.ceil(r.a_rev)},"${calcPct(r.a_txn, r.t_txn)}","${calcPct(r.a_amt, r.t_amt)}","${calcPct(r.a_rev, r.t_rev)}"\n`;
+        csv += `"${dist}","${r.vertical}","${r.activity}","${period}",${ceilNum(r.t_txn)},${ceilNum(r.t_amt)},${ceilNum(r.t_rev)},${ceilNum(r.a_txn)},${ceilNum(r.a_amt)},${ceilNum(r.a_rev)},${calcShortfall(r.t_txn, r.a_txn)},${calcShortfall(r.t_amt, r.a_amt)},${calcShortfall(r.t_rev, r.a_rev)},"${calcPctNum(r.a_txn, r.t_txn)}%","${calcPctNum(r.a_amt, r.t_amt)}%","${calcPctNum(r.a_rev, r.t_rev)}%"\n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `PMS_${dist}_${period}.csv`;
+      link.download = `CSC_CG_PMS_${dist}_${period}.csv`;
       link.click();
     }
   </script>
